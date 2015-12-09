@@ -38,16 +38,17 @@ The two aforementioned solutions of styling and rendering web maps are widely
 established and have proven effective. But both approaches have certain 
 drawbacks.
 
-Data transmitted in prerendered **raster** data formats (e.g. png, jpg) does not
-require any client-side processing and can be compressed and cached easily. This
-is used by major web mapping services like Google or Bing maps. The disadvantage
-for interactive mapping solutions is the lack of possibilities for users to 
-dynamically interact with the map and retrieve custom layouts at runtime without
-requesting a full map tile reload. Web services using this technology solve this
-with tiny vector overlays displaying additional user-styled information. But it 
-is not possible to interact with the map data itself.
+Data transmitted in prerendered '''raster''' data formats (e.g. png, jpg) does 
+not require any client-side processing and can be compressed and cached easily.
+This is used by major web mapping services like Google or Bing maps. The
+disadvantage for interactive mapping solutions is the lack of possibilities for 
+users to dynamically interact with the map and retrieve custom layouts at 
+runtime without requesting a full map tile reload. Web services using this 
+technology solve this with tiny vector overlays displaying additional 
+user-styled information. But it is not possible to interact with the map data 
+itself.
 
-Geodata transmitted in **vector** formats (e.g. json, gml) opposes the raster 
+Geodata transmitted in '''vector''' formats (e.g. json, gml) opposes the raster 
 tile approach and allows client-side stylization and rendering as the geographic
 raw data suddenly becomes available for the browser. But this advantage of 
 options utilizing the geodata in the client comes with a major drawback in 
@@ -64,12 +65,115 @@ device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance 
 bottleneck with increasing data complexity.
 
-The solution presented in this work is a **geometry**-based approach rather than
-known vector- or raster-based solutions. It maintains the goal to allow
+The solution presented in this work is a '''geometry'''-based approach rather 
+than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
 
 ==Specification==
+
+===Quadtree Tiling Logic===
+
+===Geometry Buffer Logic===
+
+===Projections===
+
+To minimize the processing of data and allow easy GL-transformations, it’s 
+important to reduce reprojections and avoid spherical units (e.g. degree, 
+latitude/longitude).
+
+Most webmapping applications use the <code>EPSG:4326</code> standard projection
+which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude 
+coordinate format. This means, most programming interfaces return values in 
+degree.
+
+Internally, many apps use <code>EPSG:3857</code>, the web mercator projection, 
+a metric system going back to Gerard Mercator’s
+[[http://ideas.time.com/2013/11/21/a-history-of-the-world-in-twelve-maps/slide/gerard-mercator-world-map-1569/|flat world map]]
+in 1569. It uses northing and easting as a measure of distance in meters from
+the equator and the prime meridian. This is already an advantage over WGS84 as
+it does not require computing-intense spheric transformations in calculations. 
+
+To simplify the geographic coordinates, all geographic references will be
+reprojected on a single tile of size 256*256 pixel with it’s origin in the 
+north-west corner. In this reference system, for instance the Brandenburg Gate
+in Berlin would be at pixel coordinate <code>[137.51253, 83.9612]</code>. 
+This allows enough precision, moves as close as we can get to 
+hardware-coordinates and is still device-independent.
+
+===Transfer Formats===
+
+Due to the data-intense applications in webmapping services, most 
+implementations follow a client/server model. It’s important to research and 
+evaluate options on exchange formats for the underlying geodata.
+
+The following formats are considered worth for comparison.
+
+* In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.
+* The new OpenGL transfer fromat (<code>.gltf</code>) is currently being drafted by the Khronos Group [13] and promises to be a file format more close to the hardware requirements.
+* In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.
+* The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.
+
+Formats not taken into account are KML, Google’s equivalent to GML, and 
+TopoJSON, another JSON format with merged geometry fields. In addition, raster 
+data formats are ignored as they do not store any extractable geometry 
+information.
+
+The table below compares the stated formats and evaluates both, their 
+space-complexity and postprocessing requirements. The space-complexity is 
+important to evaluate the required bandwidth for the application. The 
+postprocessing is the aforementioned bottleneck in performance of transforming 
+geographic data into close-to-hardware array buffers for the GPUs.
+
+{|
+|+ Comparison of data formats
+!Format
+!align="center"|Space-Complexity
+!Client-Postprocessing
+|-
+|.dae.gz
+|align="center"|<code>+ +</code>
+|required, decompress
+|-
+|.bgltf
+|align="center"|<code>+ o</code>
+|not required
+|-
+|.gltf.gz
+|align="center"|<code>+ o</code>
+|decompress only
+|-
+|.dae
+|align="center"|<code>o o</code>
+|required
+|-
+|.gltf
+|align="center"|<code>o -</code>
+|not required
+|-
+|.json
+|align="center"|<code>o -</code>
+|required
+|-
+|.gml
+|align="center"|<code>- -</code>
+|required
+|}
+
+Concerning the space requirements, both glTF and COLLADA perform above average. 
+Base of the comparison are the Cesium Milk Truck and Cesium Man by 
+[[https://github.com/AnalyticalGraphicsInc/cesium/tree/c300529011714035cb254b493bf22b62ccf9da3d/Apps/SampleData/models|Analytical Graphics Inc]].
+The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped 
+version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of 
+space-complexity since both, JSON and XML formats are quite bloated.
+
+Concerning the client-side postprocessing requirements, only the OpenGL transfer
+format allows to store array buffers which eleminates any javascript processing 
+other than requesting and reading the data. This is an obvious knockout criteria
+for the other candidates and therefore glTF will be considered the best choice 
+for this application.
+
+===API Specification===
 
 ==Rationale==
 
