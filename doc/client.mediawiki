@@ -1,5 +1,6 @@
 <pre>
-  Title: Geometry Tiling Specification
+  Title: Geometry Tiling
+  Subject: Frontend Specification
   Authors: Alexander Schoedon <schoedon@uni-potsdam.de>
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
