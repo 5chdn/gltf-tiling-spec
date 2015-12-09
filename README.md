@@ -1,9 +1,16 @@
 # Geometry Tiling Specification
 
-![Geometry Tile](/tile.png)
+![Geometry Tile](img/tile.png)
 
 _Draft specification for geometry tiling._
 
-- [Geometry Tiles Specification](specification.mediawiki)
+#### Contents
+
+- [Backend Specification](doc/server.mediawiki)
+- [Frontend Specification](doc/client.mediawiki)
 
 _work in progress..._
+
+#### Authors
+
+Alexander Schoedon <schoedon@uni-potsdam.de>

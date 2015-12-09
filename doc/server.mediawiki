@@ -1,0 +1,27 @@
+<pre>
+  Title: Geometry Tiling Specification
+  Authors: Alexander Schoedon <schoedon@uni-potsdam.de>
+  Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
+  Status: Draft
+  Created: 2015-12-02
+</pre>
+
+''work in progress...''
+
+==Abstract==
+
+==Motivation==
+
+==Specification==
+
+===Mechanism===
+
+===Compatibility===
+
+===Support for future changes===
+
+==Rationale==
+
+==Copyright==
+
+This document is placed in the public domain under CC0 conditions.
