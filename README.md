@@ -1,6 +1,6 @@
 # Geometry Tiling Specification
 
-![Geometry Tile](img/tile.png)
+![Geometry Tile](img/tile_header.png)
 
 _Draft specification for geometry tiling._
 
