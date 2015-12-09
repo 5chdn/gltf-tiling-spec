@@ -7,19 +7,69 @@
   Created: 2015-12-09
 </pre>
 
-''work in progress...''
-
 ==Abstract==
+
+Different approaches for styling and rendering maps in web applications exist. 
+Widely used architectures are raster or vector services that provide web mapping
+apps with geodata in client/server models. Raster data is efficiently 
+prerendered server-side using a static, predefined layout. Vector data can be 
+rendered client-side using dynamic layouts with CPU-consuming JavaScript 
+postprocessing algorithms.
+
+In the light of powerful, dedicated graphics hardware being even available on 
+mobile devices nowadays, this draft suggests new techniques for client-side 
+rendering of web maps with complex geometries on GPUs. This technique allows to 
+display complex geodata and maintain a dynamic, interactive layout while 
+preserving real-time rendering performance and low response times.
+
+This part of the specification describes the server sided preprocessing of
+the geodata, tiling logic and array buffer creation for vertices, indices and 
+colours.
 
 ==Motivation==
 
+Rendering huge geodata sets in web-based applications remains a performance 
+critical task due to the complexity of the underlying data. Using classic 
+approaches to render geodata in a web browser either leaves users with a 
+predefined, static layout (raster data) or a notable computation-intense 
+rendering process (vector data).
+
+The two aforementioned solutions of styling and rendering web maps are widely 
+established and have proven effective. But both approaches have certain 
+drawbacks.
+
+Data transmitted in prerendered **raster** data formats (e.g. png, jpg) does not
+require any client-side processing and can be compressed and cached easily. This
+is used by major web mapping services like Google or Bing maps. The disadvantage
+for interactive mapping solutions is the lack of possibilities for users to 
+dynamically interact with the map and retrieve custom layouts at runtime without
+requesting a full map tile reload. Web services using this technology solve this
+with tiny vector overlays displaying additional user-styled information. But it 
+is not possible to interact with the map data itself.
+
+Geodata transmitted in **vector** formats (e.g. json, gml) opposes the raster 
+tile approach and allows client-side stylization and rendering as the geographic
+raw data suddenly becomes available for the browser. But this advantage of 
+options utilizing the geodata in the client comes with a major drawback in 
+performance. Both the processing of the data and the rendering for the user are 
+solved with CPU-consuming JavaScript algorithms. Some more recent solutions 
+offer GPU-based rendering but fail with supplying convenient solutions of pre- 
+or postprocessing of the vector data.
+
+The challenge now is twofold interesting. On the one hand it is important to 
+enable rendering using GPU-based techniques like 
+[[https://khronos.org/registry/webgl/specs/latest|WebGL]]. This allows dynamic,
+interactive and user-defined layouts to be rendered directly on the client's 
+device. But on the other hand it is a must to completely eliminate the 
+client-side postprocessing of the geodata as this becomes a major performance 
+bottleneck with increasing data complexity.
+
+The solution presented in this work is a **geometry**-based approach rather than
+known vector- or raster-based solutions. It maintains the goal to allow
+real-time rendering with outstanding performance and very low response times for
+the client.
+
 ==Specification==
-
-===Mechanism===
-
-===Compatibility===
-
-===Support for future changes===
 
 ==Rationale==
 
