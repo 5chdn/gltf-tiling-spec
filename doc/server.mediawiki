@@ -4,6 +4,7 @@
   Authors: Alexander Schoedon <schoedon@uni-potsdam.de>
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
+  Version: 0.1
   Created: 2015-12-09
 </pre>
 
@@ -70,11 +71,55 @@ than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
 
+The term 'geometry' may also refer to the missing geometry shader stage in WebGL
+as of version 1.0 which is bypassed with this technology. Future releases of
+WebGL might render this solution obsolete.
+
 ==Specification==
 
-===Quadtree Tiling Logic===
+This is the technical specification for geometry tiling, especially the backend
+server sided preprocessing of the data and the API design.
 
-===Geometry Buffer Logic===
+===Map Tiling Logic===
+
+Geometry tiles are subdivided using common quadtree logic, similar to known
+raster or vector tiling services. The tiles get <code>{z, x, y}</code>
+coordinates similar to the
+[[http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/|Google Maps]]
+style, where <code>z</code> is the zoom and <code>x, y</code> the position 
+on the flat, quadratic web-mercator world.
+
+====Zoom====
+
+There are <code>22</code> zoom levels by default. Level <code>0</code> 
+contains only one quadratic tile containing the whole world map on
+<code>{0, 0, 0}</code>. Level <code>21</code> contains 4.398.046.511.104 
+(<code>4^21</code>) tiles where the world's boundaries are 
+<code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>, 
+<code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
+
+Additional zoom levels are not considered to be practicable but can easily
+added to the tiling logic following the <code>4^n</code> quadtree. The 
+defined number of zoom levels is not considired a binding boundary but 
+rather a recommended minimum to align with existing solutions.
+
+====Coordinates====
+
+The point of origin of the tile coordinates is the north west corner of
+the map <code>{z, 0, 0}</code>. All <code>x</code> and <code>y</code>
+coordinates are positive integers. <code>x</code> increases along the
+equatorial axis from west to east. <code>y</code> increases along the
+meridianal axis from north to south.
+
+<code>z</code> is not considered to be a third dimension but rather the 
+current zoom level. Three dimensional data is not covered by this 
+specification and sould be flattened.
+
+====Generalization====
+
+Generalization or general simplificatoin of complex geodata sets is not
+part of this specificatoin. In oposite: this technology should be agnostic
+to the complexity of the underlying data.
 
 ===Projections===
 
@@ -172,6 +217,8 @@ format allows to store array buffers which eleminates any javascript processing
 other than requesting and reading the data. This is an obvious knockout criteria
 for the other candidates and therefore glTF will be considered the best choice 
 for this application.
+
+===Geometry Buffer Logic===
 
 ===API Specification===
 
