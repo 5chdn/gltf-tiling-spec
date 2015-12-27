@@ -172,12 +172,153 @@ would render an image of 536,870,912 pixels width (an height accordingly).
 Following the pixel mercator coordinates, the smallest raster object would be
 <code>256/536870912=0.00000047684</code> units. We need a precision of at 
 least 10 digits to determine such differences. Therefore a double precision
-floating point datatype is required in high zoom levels.
+floating point datatype is required. Single precision would only be acceptable
+for zoom levels <code>0</code> through <code>6</code>.
 
-''@TODO''
+{|
+|+ Single versus double precision
+!Zoom
+!Tiles
+!Pixels
+!Single
+!Double
+|-
+|align="right"|0
+|align="right"|1
+|align="right"|256
+|align="right"|001.0000
+|align="right"|001.00000000000000
+|-
+|align="right"|1
+|align="right"|2
+|align="right"|512
+|align="right"|000.5000
+|align="right"|000.50000000000000
+|-
+|align="right"|2
+|align="right"|4
+|align="right"|1024
+|align="right"|000.2500
+|align="right"|000.25000000000000
+|-
+|align="right"|3
+|align="right"|8
+|align="right"|2048
+|align="right"|000.1250
+|align="right"|000.12500000000000
+|-
+|align="right"|4
+|align="right"|16
+|align="right"|4096
+|align="right"|000.0625
+|align="right"|000.06250000000000
+|-
+|align="right"|5
+|align="right"|32
+|align="right"|8192
+|align="right"|000.0312
+|align="right"|000.03125000000000
+|-
+|align="right"|6
+|align="right"|64
+|align="right"|16384
+|align="right"|000.0156
+|align="right"|000.01562500000000
+|-
+|align="right"|7
+|align="right"|128
+|align="right"|32768
+|align="right"|000.0078
+|align="right"|000.00781250000000
+|-
+|align="right"|8
+|align="right"|256
+|align="right"|65536
+|align="right"|000.0039
+|align="right"|000.00390625000000
+|-
+|align="right"|9
+|align="right"|512
+|align="right"|131072
+|align="right"|000.0019
+|align="right"|000.00195312500000
+|-
+|align="right"|10
+|align="right"|1024
+|align="right"|262144
+|align="right"|000.0009
+|align="right"|000.00097656250000
+|-
+|align="right"|11
+|align="right"|2048
+|align="right"|524288
+|align="right"|000.0004
+|align="right"|000.00048828125000
+|-
+|align="right"|12
+|align="right"|4096
+|align="right"|1048576
+|align="right"|000.0002
+|align="right"|000.00024414062500
+|-
+|align="right"|13
+|align="right"|8192
+|align="right"|2097152
+|align="right"|000.0001
+|align="right"|000.00012207031250
+|-
+|align="right"|14
+|align="right"|16384
+|align="right"|4194304
+|align="right"|000.0000
+|align="right"|000.00006103515625
+|-
+|align="right"|15
+|align="right"|32768
+|align="right"|8388608
+|align="right"|000.0000
+|align="right"|000.00003051757812
+|-
+|align="right"|16
+|align="right"|65536
+|align="right"|16777216
+|align="right"|000.0000
+|align="right"|000.00001525878906
+|-
+|align="right"|17
+|align="right"|131072
+|align="right"|33554432
+|align="right"|000.0000
+|align="right"|000.00000762939453
+|-
+|align="right"|18
+|align="right"|262144
+|align="right"|67108864
+|align="right"|000.0000
+|align="right"|000.00000381469726
+|-
+|align="right"|19
+|align="right"|524288
+|align="right"|134217728
+|align="right"|000.0000
+|align="right"|000.00000190734863
+|-
+|align="right"|20
+|align="right"|1048576
+|align="right"|268435456
+|align="right"|000.0000
+|align="right"|000.00000095367431
+|-
+|align="right"|21
+|align="right"|2097152
+|align="right"|536870912
+|align="right"|000.0000
+|align="right"|000.00000047683715
+|-
+|}
 
-This allows enough precision, moves as close as we can get to 
-hardware-coordinates and is still device-independent.
+This allows enough precision through zoom level <code>49</code>, moves as
+close as we can get to hardware-coordinates and is still device-independent.
 
 ===Transfer Formats===
 
