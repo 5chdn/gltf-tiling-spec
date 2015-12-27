@@ -39,6 +39,8 @@ The two aforementioned solutions of styling and rendering web maps are widely
 established and have proven effective. But both approaches have certain 
 drawbacks.
 
+====Raster Tiles====
+
 Data transmitted in prerendered '''raster''' data formats (e.g. png, jpg) does 
 not require any client-side processing and can be compressed and cached easily.
 This is used by major web mapping services like Google or Bing maps. The
@@ -49,6 +51,8 @@ technology solve this with tiny vector overlays displaying additional
 user-styled information. But it is not possible to interact with the map data 
 itself.
 
+====Vector Tiles====
+
 Geodata transmitted in '''vector''' formats (e.g. json, gml) opposes the raster 
 tile approach and allows client-side stylization and rendering as the geographic
 raw data suddenly becomes available for the browser. But this advantage of 
@@ -57,6 +61,8 @@ performance. Both the processing of the data and the rendering for the user are
 solved with CPU-consuming JavaScript algorithms. Some more recent solutions 
 offer GPU-based rendering but fail with supplying convenient solutions of pre- 
 or postprocessing of the vector data.
+
+====Challenge====
 
 The challenge now is twofold interesting. On the one hand it is important to 
 enable rendering using GPU-based techniques like 
@@ -77,7 +83,7 @@ WebGL might render this solution obsolete.
 
 ==Specification==
 
-This is the technical specification for geometry tiling, especially the backend
+This is the technical specification for '''geometry tiling''', especially the backend
 server sided preprocessing of the data and the API design.
 
 ===Map Tiling Logic===
@@ -87,13 +93,13 @@ raster or vector tiling services. The tiles get <code>{z, x, y}</code>
 coordinates similar to the
 [[http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/|Google Maps]]
 style, where <code>z</code> is the zoom and <code>x, y</code> the position 
-on the flat, quadratic web-mercator world.
+on the flat, quadratic web-mercator worldmap.
 
 ====Zoom====
 
 There are <code>22</code> zoom levels by default. Level <code>0</code> 
 contains only one quadratic tile containing the whole world map on
-<code>{0, 0, 0}</code>. Level <code>21</code> contains 4.398.046.511.104 
+<code>{0, 0, 0}</code>. Level <code>21</code> contains 4,398,046,511,104 
 (<code>4^21</code>) tiles where the world's boundaries are 
 <code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>, 
 <code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
@@ -105,7 +111,7 @@ rather a recommended minimum to align with existing solutions.
 
 ====Coordinates====
 
-The point of origin of the tile coordinates is the north west corner of
+The point of origin of the tile coordinates is the northwest corner of
 the map <code>{z, 0, 0}</code>. All <code>x</code> and <code>y</code>
 coordinates are positive integers. <code>x</code> increases along the
 equatorial axis from west to east. <code>y</code> increases along the
@@ -118,7 +124,7 @@ specification and sould be flattened.
 ====Generalization====
 
 Generalization or general simplificatoin of complex geodata sets is not
-part of this specificatoin. In oposite: this technology should be agnostic
+part of this specificatoin. In opposite: this technology should be agnostic
 to the complexity of the underlying data.
 
 ===Projections===
@@ -127,10 +133,14 @@ To minimize the processing of data and allow easy GL-transformations, it’s
 important to reduce reprojections and avoid spherical units (e.g. degree, 
 latitude/longitude).
 
+====World Geodetic System====
+
 Most webmapping applications use the <code>EPSG:4326</code> standard projection
 which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude 
 coordinate format. This means, most programming interfaces return values in 
 degree.
+
+====Web Mercator====
 
 Internally, many apps use <code>EPSG:3857</code>, the web mercator projection, 
 a metric system going back to Gerard Mercator’s
@@ -139,10 +149,33 @@ in 1569. It uses northing and easting as a measure of distance in meters from
 the equator and the prime meridian. This is already an advantage over WGS84 as
 it does not require computing-intense spheric transformations in calculations. 
 
+====Pixel Mercator====
+
 To simplify the geographic coordinates, all geographic references will be
 reprojected on a single tile of size 256*256 pixel with it’s origin in the 
-north-west corner. In this reference system, for instance the Brandenburg Gate
-in Berlin would be at pixel coordinate <code>[137.51253, 83.9612]</code>. 
+northwest corner. 
+
+=====Coordinates=====
+
+The pixel mercator origin initializes with <code>x=0.0</code> and 
+<code>y=0.0</code> in the northwest corner of the map. The maximum boundary
+is <code>x=256.0</code> and <code>y=256.0</code> in the southeast corner.
+In this reference system, for instance the Brandenburg Gate in Berlin would 
+be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
+
+=====Precision=====
+
+The smallest visible entitiy on raster tiles is a single pixel. On zoom level
+<code>21</code> with 2,097,152 tiles with each tile containing 256 pixels
+would render an image of 536,870,912 pixels width (an height accordingly).
+
+Following the pixel mercator coordinates, the smallest raster object would be
+<code>256/536870912=0.00000047684</code> units. We need a precision of at 
+least 10 digits to determine such differences. Therefore a double precision
+floating point datatype is required in high zoom levels.
+
+''@TODO''
+
 This allows enough precision, moves as close as we can get to 
 hardware-coordinates and is still device-independent.
 
