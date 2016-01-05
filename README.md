@@ -10,14 +10,14 @@ approaches but scores in both better performance and more dynamic stylization
 optoins.
 
 
-#### Contents
+## Contents
 
 - [General Motivation (PDF)](pdf/motivation.pdf)
 - [Backend Specification](doc/server.mediawiki)
 - [Frontend Specification](doc/client.mediawiki)
 
 
-#### Authors
+## Authors
 
 Alexander Schoedon <schoedon@uni-potsdam.de>
 

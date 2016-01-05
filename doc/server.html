@@ -224,7 +224,7 @@ to the complexity of the underlying data.
 
 
 
-<p>To minimize the processing of data and allow easy GL-transformations, it’s
+<p>To minimize the processing of data and allow easy OpenGL-transformations, it’s
 important to reduce reprojections and avoid spherical units (e.g. degree,
 latitude/longitude).
 </p>
@@ -287,7 +287,7 @@ be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
 
 <p>The smallest visible entitiy on raster tiles is a single pixel. On zoom level
 <code>21</code> with 2,097,152 tiles with each tile containing 256 pixels
-would render an image of 536,870,912 pixels width (an height accordingly).
+would render an image of 536,870,912 pixels width (and height accordingly).
 </p>
 <p>Following the pixel mercator coordinates, the smallest raster object would be
 <code>256/536870912=0.00000047684</code> units. We need a precision of at
@@ -303,10 +303,10 @@ for zoom levels <code>0</code> through <code>6</code>.
 Zoom
 </th>
 <th>
-Tiles
+Tile-Width
 </th>
 <th>
-Pixels
+Pixel-Width
 </th>
 <th>
 Single
@@ -444,7 +444,7 @@ Double
 <td align="right">
 32768
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0078
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -461,7 +461,7 @@ Double
 <td align="right">
 65536
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0039
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -478,7 +478,7 @@ Double
 <td align="right">
 131072
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0019
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -495,7 +495,7 @@ Double
 <td align="right">
 262144
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0009
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -512,7 +512,7 @@ Double
 <td align="right">
 524288
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0004
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -529,7 +529,7 @@ Double
 <td align="right">
 1048576
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0002
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -546,7 +546,7 @@ Double
 <td align="right">
 2097152
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.0001
 </td>
 <td style="text-align: right; background-color: #ccffcc;">
@@ -708,6 +708,57 @@ Double
 </tr>
 <tr>
 <td align="right">
+39
+</td>
+<td align="right">
+549755813888
+</td>
+<td align="right">
+140737488355328
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000000000181
+</td>
+</tr>
+<tr>
+<td align="right">
+40
+</td>
+<td align="right">
+1099511627776
+</td>
+<td align="right">
+281474976710656
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ffffcc;">
+000.00000000000090
+</td>
+</tr>
+<tr>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+</tr>
+<tr>
+<td align="right">
 46
 </td>
 <td align="right">
@@ -719,7 +770,7 @@ Double
 <td style="text-align: right; background-color: #ffcccc;">
 000.0000
 </td>
-<td style="text-align: right; background-color: #ccffcc;">
+<td style="text-align: right; background-color: #ffffcc;">
 000.00000000000001
 </td>
 </tr>
@@ -742,7 +793,7 @@ Double
 </tr>
 </table>
 </p>
-<p>This allows enough precision through zoom level <code>46</code>, moves as
+<p>This allows enough precision through zoom level <code>39</code>, moves as
 close as we can get to hardware-coordinates and is still device-independent.
 </p>
 <p><b>Note on the frontend</b>: The OpenGL Shading Language (GLSL) only
@@ -802,7 +853,7 @@ Client-Postprocessing
 </th>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffffcc;">
+<td style="text-align: left; background-color: #ffffcc;">
 .dae.gz
 </td>
 <td style="text-align: center; background-color: #ccffcc;">
@@ -813,7 +864,7 @@ required, decompress
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ccffcc;">
+<td style="text-align: left; background-color: #ccffcc;">
 .bgltf
 </td>
 <td style="text-align: center; background-color: #ccffcc;">
@@ -824,7 +875,7 @@ not required
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffffcc;">
+<td style="text-align: left; background-color: #ffffcc;">
 .gltf.gz
 </td>
 <td style="text-align: center; background-color: #ccffcc;">
@@ -835,7 +886,7 @@ decompress only
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffffcc;">
+<td style="text-align: left; background-color: #ffffcc;">
 .dae
 </td>
 <td style="text-align: center; background-color: #ffffcc;">
@@ -846,7 +897,7 @@ required
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffffcc;">
+<td style="text-align: left; background-color: #ffffcc;">
 .gltf
 </td>
 <td style="text-align: center; background-color: #ffcccc;">
@@ -857,7 +908,7 @@ not required
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffcccc;">
+<td style="text-align: left; background-color: #ffcccc;">
 .json
 </td>
 <td style="text-align: center; background-color: #ffcccc;">
@@ -868,7 +919,7 @@ required
 </td>
 </tr>
 <tr>
-<td style="text-align: center; background-color: #ffcccc;">
+<td style="text-align: left; background-color: #ffcccc;">
 .gml
 </td>
 <td style="text-align: center; background-color: #ffcccc;">
