@@ -176,7 +176,7 @@ floating point datatype is required. Single precision would only be acceptable
 for zoom levels <code>0</code> through <code>6</code>.
 
 {|
-|+ Single versus double precision
+|+ '''Table - Single versus double precision''':
 !Zoom
 !Tiles
 !Pixels
@@ -270,55 +270,81 @@ for zoom levels <code>0</code> through <code>6</code>.
 |align="right"|14
 |align="right"|16384
 |align="right"|4194304
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00006103515625
 |-
 |align="right"|15
 |align="right"|32768
 |align="right"|8388608
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00003051757812
 |-
 |align="right"|16
 |align="right"|65536
 |align="right"|16777216
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00001525878906
 |-
 |align="right"|17
 |align="right"|131072
 |align="right"|33554432
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00000762939453
 |-
 |align="right"|18
 |align="right"|262144
 |align="right"|67108864
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00000381469726
 |-
 |align="right"|19
 |align="right"|524288
 |align="right"|134217728
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00000190734863
 |-
 |align="right"|20
 |align="right"|1048576
 |align="right"|268435456
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00000095367431
 |-
 |align="right"|21
 |align="right"|2097152
 |align="right"|536870912
-|align="right"|000.0000
+|align="right"| -
 |align="right"|000.00000047683715
+|-
+|align="right"|..
+|align="right"|..
+|align="right"|..
+|align="right"|..
+|align="right"|..
+|-
+|align="right"|46
+|align="right"|70368744177664
+|align="right"|18014398509481984
+|align="right"| -
+|align="right"|000.00000000000001
+|-
+|align="right"|47
+|align="right"|140737488355328
+|align="right"|36028797018963968
+|align="right"| -
+|align="right"| -
 |-
 |}
 
-This allows enough precision through zoom level <code>49</code>, moves as
+This allows enough precision through zoom level <code>46</code>, moves as
 close as we can get to hardware-coordinates and is still device-independent.
+
+'''Note on the frontend''': The OpenGL Shading Language (GLSL) only
+distinguishes between <code>lowp</code>, <code>mediump</code> and
+<code>highp</code> where the latter only offers single floating point
+precision (32 bit) and the others even lower. This is not to be confused with
+the considerations above as the rendering process projects all coordinates
+within the visible range of <code>[0,1]</code> without losing precisoin in
+this process. More details are available in the client specification.
 
 ===Transfer Formats===
 
@@ -345,7 +371,7 @@ postprocessing is the aforementioned bottleneck in performance of transforming
 geographic data into close-to-hardware array buffers for the GPUs.
 
 {|
-|+ Comparison of data formats
+|+ Table - Comparison of data formats:
 !Format
 !align="center"|Space-Complexity
 !Client-Postprocessing
