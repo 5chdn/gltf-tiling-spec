@@ -1,0 +1,924 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><link rel="stylesheet" href="doc.css" type="text/css" /><title="Geometry Tiling Specification: Server" /></head><body>
+<p><pre>  Title: Geometry Tiling
+  Subject: Backend Specification
+  Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
+  Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
+  Status: Draft
+  Version: 0.1
+  Created: 2015-12-09
+</pre>
+</p>
+<p><table id="toc" class="toc" summary="Contents"><tr><td>
+<div id="toctitle"><h2>Table of Contents</h2></div>
+<ul><ul>
+<li><a href="#Abstract">Abstract</a></li>
+<li>
+<a href="#Motivation">Motivation</a><ul><ul>
+<li><a href="#Raster_Tiles">Raster Tiles</a></li>
+<li><a href="#Vector_Tiles">Vector Tiles</a></li>
+<li><a href="#Challenge">Challenge</a></li>
+</ul></ul>
+</li>
+<li>
+<a href="#Specification">Specification</a><ul>
+<li>
+<a href="#Map_Tiling_Logic">Map Tiling Logic</a><ul>
+<li><a href="#Zoom">Zoom</a></li>
+<li><a href="#Coordinates">Coordinates</a></li>
+<li><a href="#Generalization">Generalization</a></li>
+</ul>
+</li>
+<li>
+<a href="#Projections">Projections</a><ul>
+<li><a href="#World_Geodetic_System">World Geodetic System</a></li>
+<li><a href="#Web_Mercator">Web Mercator</a></li>
+<li>
+<a href="#Pixel_Mercator">Pixel Mercator</a><ul>
+<li><a href="#Coordinates-2">Coordinates</a></li>
+<li><a href="#Precision">Precision</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#Transfer_Formats">Transfer Formats</a></li>
+<li><a href="#Geometry_Buffer_Logic">Geometry Buffer Logic</a></li>
+<li><a href="#API_Specification">API Specification</a></li>
+</ul>
+</li>
+<li><a href="#Rationale">Rationale</a></li>
+<li><a href="#Copyright">Copyright</a></li>
+</ul></ul>
+</td></tr></table>
+<h2>
+<span class="editsection">[<a href="?section=Abstract" title="Edit section: Abstract">edit</a>]</span> <a name="Abstract"></a><span class="mw-headline" id="Abstract">Abstract</span>
+</h2>
+
+
+
+<p>Different approaches for styling and rendering maps in web applications exist.
+Widely used architectures are raster or vector services that provide web mapping
+apps with geodata in client/server models. Raster data is efficiently
+prerendered server-side using a static, predefined layout. Vector data can be
+rendered client-side using dynamic layouts with CPU-consuming JavaScript
+postprocessing algorithms.
+</p>
+<p>In the light of powerful, dedicated graphics hardware being even available on
+mobile devices nowadays, this draft suggests new techniques for client-side
+rendering of web maps with complex geometries on GPUs. This technique allows to
+display complex geodata and maintain a dynamic, interactive layout while
+preserving real-time rendering performance and low response times.
+</p>
+<p>This part of the specification describes the server sided preprocessing of
+the geodata, tiling logic and array buffer creation for vertices, indices and
+colours.
+</p>
+
+<h2>
+<span class="editsection">[<a href="?section=Motivation" title="Edit section: Abstract">edit</a>]</span> <a name="Motivation"></a><span class="mw-headline" id="Motivation">Motivation</span>
+</h2>
+
+
+
+<p>Rendering huge geodata sets in web-based applications remains a performance
+critical task due to the complexity of the underlying data. Using classic
+approaches to render geodata in a web browser either leaves users with a
+predefined, static layout (raster data) or a notable computation-intense
+rendering process (vector data).
+</p>
+<p>The two aforementioned solutions of styling and rendering web maps are widely
+established and have proven effective. But both approaches have certain
+drawbacks.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Raster_Tiles" title="Edit section: Abstract">edit</a>]</span> <a name="Raster_Tiles"></a><span class="mw-headline" id="Raster_Tiles">Raster Tiles</span>
+</h4>
+
+
+
+<p>Data transmitted in prerendered <b>raster</b> data formats (e.g. png, jpg) does
+not require any client-side processing and can be compressed and cached easily.
+This is used by major web mapping services like Google or Bing maps. The
+disadvantage for interactive mapping solutions is the lack of possibilities for
+users to dynamically interact with the map and retrieve custom layouts at
+runtime without requesting a full map tile reload. Web services using this
+technology solve this with tiny vector overlays displaying additional
+user-styled information. But it is not possible to interact with the map data
+itself.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Vector_Tiles" title="Edit section: Abstract">edit</a>]</span> <a name="Vector_Tiles"></a><span class="mw-headline" id="Vector_Tiles">Vector Tiles</span>
+</h4>
+
+
+
+<p>Geodata transmitted in <b>vector</b> formats (e.g. json, gml) opposes the raster
+tile approach and allows client-side stylization and rendering as the geographic
+raw data suddenly becomes available for the browser. But this advantage of
+options utilizing the geodata in the client comes with a major drawback in
+performance. Both the processing of the data and the rendering for the user are
+solved with CPU-consuming JavaScript algorithms. Some more recent solutions
+offer GPU-based rendering but fail with supplying convenient solutions of pre-
+or postprocessing of the vector data.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Challenge" title="Edit section: Abstract">edit</a>]</span> <a name="Challenge"></a><span class="mw-headline" id="Challenge">Challenge</span>
+</h4>
+
+
+
+<p>The challenge now is twofold interesting. On the one hand it is important to
+enable rendering using GPU-based techniques like
+<a href="https://khronos.org/registry/webgl/specs/latest">WebGL</a>. This allows dynamic,
+interactive and user-defined layouts to be rendered directly on the client's
+device. But on the other hand it is a must to completely eliminate the
+client-side postprocessing of the geodata as this becomes a major performance
+bottleneck with increasing data complexity.
+</p>
+<p>The solution presented in this work is a <b>geometry</b>-based approach rather
+than known vector- or raster-based solutions. It maintains the goal to allow
+real-time rendering with outstanding performance and very low response times for
+the client.
+</p>
+<p>The term 'geometry' may also refer to the missing geometry shader stage in WebGL
+as of version 1.0 which is bypassed with this technology. Future releases of
+WebGL might render this solution obsolete.
+</p>
+
+<h2>
+<span class="editsection">[<a href="?section=Specification" title="Edit section: Abstract">edit</a>]</span> <a name="Specification"></a><span class="mw-headline" id="Specification">Specification</span>
+</h2>
+
+
+
+<p>This is the technical specification for <b>geometry tiling</b>, especially the backend
+server sided preprocessing of the data and the API design.
+</p>
+
+<h3>
+<span class="editsection">[<a href="?section=Map_Tiling_Logic" title="Edit section: Abstract">edit</a>]</span> <a name="Map_Tiling_Logic"></a><span class="mw-headline" id="Map_Tiling_Logic">Map Tiling Logic</span>
+</h3>
+
+
+
+<p>Geometry tiles are subdivided using common quadtree logic, similar to known
+raster or vector tiling services. The tiles get <code>{z, x, y}</code>
+coordinates similar to the
+<a href="http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/">Google Maps</a>
+style, where <code>z</code> is the zoom and <code>x, y</code> the position
+on the flat, quadratic web-mercator worldmap.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Zoom" title="Edit section: Abstract">edit</a>]</span> <a name="Zoom"></a><span class="mw-headline" id="Zoom">Zoom</span>
+</h4>
+
+
+
+<p>There are <code>22</code> zoom levels by default. Level <code>0</code>
+contains only one quadratic tile containing the whole world map on
+<code>{0, 0, 0}</code>. Level <code>21</code> contains 4,398,046,511,104
+(<code>4^21</code>) tiles where the world's boundaries are
+<code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>,
+<code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
+</p>
+<p>Additional zoom levels are not considered to be practicable but can easily
+added to the tiling logic following the <code>4^n</code> quadtree. The
+defined number of zoom levels is not considired a binding boundary but
+rather a recommended minimum to align with existing solutions.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Coordinates" title="Edit section: Abstract">edit</a>]</span> <a name="Coordinates"></a><span class="mw-headline" id="Coordinates">Coordinates</span>
+</h4>
+
+
+
+<p>The point of origin of the tile coordinates is the northwest corner of
+the map <code>{z, 0, 0}</code>. All <code>x</code> and <code>y</code>
+coordinates are positive integers. <code>x</code> increases along the
+equatorial axis from west to east. <code>y</code> increases along the
+meridianal axis from north to south.
+</p>
+<p><code>z</code> is not considered to be a third dimension but rather the
+current zoom level. Three dimensional data is not covered by this
+specification and sould be flattened.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Generalization" title="Edit section: Abstract">edit</a>]</span> <a name="Generalization"></a><span class="mw-headline" id="Generalization">Generalization</span>
+</h4>
+
+
+
+<p>Generalization or general simplificatoin of complex geodata sets is not
+part of this specificatoin. In opposite: this technology should be agnostic
+to the complexity of the underlying data.
+</p>
+
+<h3>
+<span class="editsection">[<a href="?section=Projections" title="Edit section: Abstract">edit</a>]</span> <a name="Projections"></a><span class="mw-headline" id="Projections">Projections</span>
+</h3>
+
+
+
+<p>To minimize the processing of data and allow easy GL-transformations, it’s
+important to reduce reprojections and avoid spherical units (e.g. degree,
+latitude/longitude).
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=World_Geodetic_System" title="Edit section: Abstract">edit</a>]</span> <a name="World_Geodetic_System"></a><span class="mw-headline" id="World_Geodetic_System">World Geodetic System</span>
+</h4>
+
+
+
+<p>Most webmapping applications use the <code>EPSG:4326</code> standard projection
+which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude
+coordinate format. This means, most programming interfaces return values in
+degree.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Web_Mercator" title="Edit section: Abstract">edit</a>]</span> <a name="Web_Mercator"></a><span class="mw-headline" id="Web_Mercator">Web Mercator</span>
+</h4>
+
+
+
+<p>Internally, many apps use <code>EPSG:3857</code>, the web mercator projection,
+a metric system going back to Gerard Mercator’s
+<a href="http://ideas.time.com/2013/11/21/a-history-of-the-world-in-twelve-maps/slide/gerard-mercator-world-map-1569/">flat world map</a>
+in 1569. It uses northing and easting as a measure of distance in meters from
+the equator and the prime meridian. This is already an advantage over WGS84 as
+it does not require computing-intense spheric transformations in calculations.
+</p>
+
+<h4>
+<span class="editsection">[<a href="?section=Pixel_Mercator" title="Edit section: Abstract">edit</a>]</span> <a name="Pixel_Mercator"></a><span class="mw-headline" id="Pixel_Mercator">Pixel Mercator</span>
+</h4>
+
+
+
+<p>To simplify the geographic coordinates, all geographic references will be
+reprojected on a single tile of size 256*256 pixel with it’s origin in the
+northwest corner.
+</p>
+
+<h5>
+<span class="editsection">[<a href="?section=Coordinates-2" title="Edit section: Abstract">edit</a>]</span> <a name="Coordinates-2"></a><span class="mw-headline" id="Coordinates-2">Coordinates</span>
+</h5>
+
+
+
+<p>The pixel mercator origin initializes with <code>x=0.0</code> and
+<code>y=0.0</code> in the northwest corner of the map. The maximum boundary
+is <code>x=256.0</code> and <code>y=256.0</code> in the southeast corner.
+In this reference system, for instance the Brandenburg Gate in Berlin would
+be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
+</p>
+
+<h5>
+<span class="editsection">[<a href="?section=Precision" title="Edit section: Abstract">edit</a>]</span> <a name="Precision"></a><span class="mw-headline" id="Precision">Precision</span>
+</h5>
+
+
+
+<p>The smallest visible entitiy on raster tiles is a single pixel. On zoom level
+<code>21</code> with 2,097,152 tiles with each tile containing 256 pixels
+would render an image of 536,870,912 pixels width (an height accordingly).
+</p>
+<p>Following the pixel mercator coordinates, the smallest raster object would be
+<code>256/536870912=0.00000047684</code> units. We need a precision of at
+least 10 digits to determine such differences. Therefore a double precision
+floating point datatype is required. Single precision would only be acceptable
+for zoom levels <code>0</code> through <code>6</code>.
+</p>
+<p><table>
+<caption>
+<b>Table - Single versus double precision</b>:</caption>
+<tr>
+<th>
+Zoom
+</th>
+<th>
+Tiles
+</th>
+<th>
+Pixels
+</th>
+<th>
+Single
+</th>
+<th>
+Double
+</th>
+</tr>
+<tr>
+<td align="right">
+0
+</td>
+<td align="right">
+1
+</td>
+<td align="right">
+256
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+001.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+001.00000000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+1
+</td>
+<td align="right">
+2
+</td>
+<td align="right">
+512
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.5000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.50000000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+2
+</td>
+<td align="right">
+4
+</td>
+<td align="right">
+1024
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.2500
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.25000000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+3
+</td>
+<td align="right">
+8
+</td>
+<td align="right">
+2048
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.1250
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.12500000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+4
+</td>
+<td align="right">
+16
+</td>
+<td align="right">
+4096
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0625
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.06250000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+5
+</td>
+<td align="right">
+32
+</td>
+<td align="right">
+8192
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0312
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.03125000000000
+</td>
+</tr>
+<tr>
+<td align="right">
+6
+</td>
+<td align="right">
+64
+</td>
+<td align="right">
+16384
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0156
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.01562500000000
+</td>
+</tr>
+<tr>
+<td align="right">
+7
+</td>
+<td align="right">
+128
+</td>
+<td align="right">
+32768
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0078
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00781250000000
+</td>
+</tr>
+<tr>
+<td align="right">
+8
+</td>
+<td align="right">
+256
+</td>
+<td align="right">
+65536
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0039
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00390625000000
+</td>
+</tr>
+<tr>
+<td align="right">
+9
+</td>
+<td align="right">
+512
+</td>
+<td align="right">
+131072
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0019
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00195312500000
+</td>
+</tr>
+<tr>
+<td align="right">
+10
+</td>
+<td align="right">
+1024
+</td>
+<td align="right">
+262144
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0009
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00097656250000
+</td>
+</tr>
+<tr>
+<td align="right">
+11
+</td>
+<td align="right">
+2048
+</td>
+<td align="right">
+524288
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0004
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00048828125000
+</td>
+</tr>
+<tr>
+<td align="right">
+12
+</td>
+<td align="right">
+4096
+</td>
+<td align="right">
+1048576
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0002
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00024414062500
+</td>
+</tr>
+<tr>
+<td align="right">
+13
+</td>
+<td align="right">
+8192
+</td>
+<td align="right">
+2097152
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.0001
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00012207031250
+</td>
+</tr>
+<tr>
+<td align="right">
+14
+</td>
+<td align="right">
+16384
+</td>
+<td align="right">
+4194304
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00006103515625
+</td>
+</tr>
+<tr>
+<td align="right">
+15
+</td>
+<td align="right">
+32768
+</td>
+<td align="right">
+8388608
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00003051757812
+</td>
+</tr>
+<tr>
+<td align="right">
+16
+</td>
+<td align="right">
+65536
+</td>
+<td align="right">
+16777216
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00001525878906
+</td>
+</tr>
+<tr>
+<td align="right">
+17
+</td>
+<td align="right">
+131072
+</td>
+<td align="right">
+33554432
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000762939453
+</td>
+</tr>
+<tr>
+<td align="right">
+18
+</td>
+<td align="right">
+262144
+</td>
+<td align="right">
+67108864
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000381469726
+</td>
+</tr>
+<tr>
+<td align="right">
+19
+</td>
+<td align="right">
+524288
+</td>
+<td align="right">
+134217728
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000190734863
+</td>
+</tr>
+<tr>
+<td align="right">
+20
+</td>
+<td align="right">
+1048576
+</td>
+<td align="right">
+268435456
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000095367431
+</td>
+</tr>
+<tr>
+<td align="right">
+21
+</td>
+<td align="right">
+2097152
+</td>
+<td align="right">
+536870912
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000047683715
+</td>
+</tr>
+<tr>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+<td align="right">
+..
+</td>
+</tr>
+<tr>
+<td align="right">
+46
+</td>
+<td align="right">
+70368744177664
+</td>
+<td align="right">
+18014398509481984
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ccffcc;">
+000.00000000000001
+</td>
+</tr>
+<tr>
+<td align="right">
+47
+</td>
+<td align="right">
+140737488355328
+</td>
+<td align="right">
+36028797018963968
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.0000
+</td>
+<td style="text-align: right; background-color: #ffcccc;">
+000.00000000000000
+</td>
+</tr>
+</table>
+</p>
+<p>This allows enough precision through zoom level <code>46</code>, moves as
+close as we can get to hardware-coordinates and is still device-independent.
+</p>
+<p><b>Note on the frontend</b>: The OpenGL Shading Language (GLSL) only
+distinguishes between <code>lowp</code>, <code>mediump</code> and
+<code>highp</code> where the latter only offers single floating point
+precision (32 bit) and the others even lower. This is not to be confused with
+the considerations above as the rendering process projects all coordinates
+within the visible range of <code>[0,1]</code> without losing precisoin in
+this process. More details are available in the client specification.
+</p>
+
+<h3>
+<span class="editsection">[<a href="?section=Transfer_Formats" title="Edit section: Abstract">edit</a>]</span> <a name="Transfer_Formats"></a><span class="mw-headline" id="Transfer_Formats">Transfer Formats</span>
+</h3>
+
+
+
+<p>Due to the data-intense applications in webmapping services, most
+implementations follow a client/server model. It’s important to research and
+evaluate options on exchange formats for the underlying geodata.
+</p>
+<p>The following formats are considered worth for comparison.
+</p>
+
+
+
+
+
+<p><ul>
+<li>In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.</li>
+<li>The new OpenGL transfer fromat (<code>.gltf</code>) is currently being drafted by the Khronos Group [13] and promises to be a file format more close to the hardware requirements.</li>
+<li>In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.</li>
+<li>The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.</li>
+</ul>
+Formats not taken into account are KML, Google’s equivalent to GML, and
+TopoJSON, another JSON format with merged geometry fields. In addition, raster
+data formats are ignored as they do not store any extractable geometry
+information.
+</p>
+<p>The table below compares the stated formats and evaluates both, their
+space-complexity and postprocessing requirements. The space-complexity is
+important to evaluate the required bandwidth for the application. The
+postprocessing is the aforementioned bottleneck in performance of transforming
+geographic data into close-to-hardware array buffers for the GPUs.
+</p>
+<p><table>
+<caption>Table - Comparison of data formats:</caption>
+<tr>
+<th>
+Format
+</th>
+<th align="center">
+Space-Complexity
+</th>
+<th>
+Client-Postprocessing
+</th>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffffcc;">
+.dae.gz
+</td>
+<td style="text-align: center; background-color: #ccffcc;">
+<code>+ +</code>
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+required, decompress
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ccffcc;">
+.bgltf
+</td>
+<td style="text-align: center; background-color: #ccffcc;">
+<code>+ o</code>
+</td>
+<td style="text-align: center; background-color: #ccffcc;">
+not required
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffffcc;">
+.gltf.gz
+</td>
+<td style="text-align: center; background-color: #ccffcc;">
+<code>+ o</code>
+</td>
+<td style="text-align: center; background-color: #ffffcc;">
+decompress only
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffffcc;">
+.dae
+</td>
+<td style="text-align: center; background-color: #ffffcc;">
+<code>o o</code>
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+required
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffffcc;">
+.gltf
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+<code>o -</code>
+</td>
+<td style="text-align: center; background-color: #ccffcc;">
+not required
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffcccc;">
+.json
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+<code>o -</code>
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+required
+</td>
+</tr>
+<tr>
+<td style="text-align: center; background-color: #ffcccc;">
+.gml
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+<code>- -</code>
+</td>
+<td style="text-align: center; background-color: #ffcccc;">
+required
+</td>
+</tr>
+</table>
+</p>
+<p>Concerning the space requirements, both glTF and COLLADA perform above average.
+Base of the comparison are the Cesium Milk Truck and Cesium Man by
+<a href="https://github.com/AnalyticalGraphicsInc/cesium/tree/c300529011714035cb254b493bf22b62ccf9da3d/Apps/SampleData/models">Analytical Graphics Inc</a>.
+The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped
+version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of
+space-complexity since both, JSON and XML formats are quite bloated.
+</p>
+<p>Concerning the client-side postprocessing requirements, only the OpenGL transfer
+format allows to store array buffers which eleminates any javascript processing
+other than requesting and reading the data. This is an obvious knockout criteria
+for the other candidates and therefore glTF will be considered the best choice
+for this application.
+</p>
+
+<h3>
+<span class="editsection">[<a href="?section=Geometry_Buffer_Logic" title="Edit section: Abstract">edit</a>]</span> <a name="Geometry_Buffer_Logic"></a><span class="mw-headline" id="Geometry_Buffer_Logic">Geometry Buffer Logic</span>
+</h3>
+
+
+
+
+<h3>
+<span class="editsection">[<a href="?section=API_Specification" title="Edit section: Abstract">edit</a>]</span> <a name="API_Specification"></a><span class="mw-headline" id="API_Specification">API Specification</span>
+</h3>
+
+
+
+
+<h2>
+<span class="editsection">[<a href="?section=Rationale" title="Edit section: Abstract">edit</a>]</span> <a name="Rationale"></a><span class="mw-headline" id="Rationale">Rationale</span>
+</h2>
+
+
+
+
+<h2>
+<span class="editsection">[<a href="?section=Copyright" title="Edit section: Abstract">edit</a>]</span> <a name="Copyright"></a><span class="mw-headline" id="Copyright">Copyright</span>
+</h2>
+
+
+
+<p>This document is placed in the public domain under CC0 conditions.</p></body></html>
