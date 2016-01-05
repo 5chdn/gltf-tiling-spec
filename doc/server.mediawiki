@@ -1,7 +1,7 @@
 <pre>
   Title: Geometry Tiling
   Subject: Backend Specification
-  Authors: Alexander Schoedon <schoedon@uni-potsdam.de>
+  Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
   Version: 0.1
@@ -10,69 +10,69 @@
 
 ==Abstract==
 
-Different approaches for styling and rendering maps in web applications exist. 
+Different approaches for styling and rendering maps in web applications exist.
 Widely used architectures are raster or vector services that provide web mapping
-apps with geodata in client/server models. Raster data is efficiently 
-prerendered server-side using a static, predefined layout. Vector data can be 
-rendered client-side using dynamic layouts with CPU-consuming JavaScript 
+apps with geodata in client/server models. Raster data is efficiently
+prerendered server-side using a static, predefined layout. Vector data can be
+rendered client-side using dynamic layouts with CPU-consuming JavaScript
 postprocessing algorithms.
 
-In the light of powerful, dedicated graphics hardware being even available on 
-mobile devices nowadays, this draft suggests new techniques for client-side 
-rendering of web maps with complex geometries on GPUs. This technique allows to 
-display complex geodata and maintain a dynamic, interactive layout while 
+In the light of powerful, dedicated graphics hardware being even available on
+mobile devices nowadays, this draft suggests new techniques for client-side
+rendering of web maps with complex geometries on GPUs. This technique allows to
+display complex geodata and maintain a dynamic, interactive layout while
 preserving real-time rendering performance and low response times.
 
 This part of the specification describes the server sided preprocessing of
-the geodata, tiling logic and array buffer creation for vertices, indices and 
+the geodata, tiling logic and array buffer creation for vertices, indices and
 colours.
 
 ==Motivation==
 
-Rendering huge geodata sets in web-based applications remains a performance 
-critical task due to the complexity of the underlying data. Using classic 
-approaches to render geodata in a web browser either leaves users with a 
-predefined, static layout (raster data) or a notable computation-intense 
+Rendering huge geodata sets in web-based applications remains a performance
+critical task due to the complexity of the underlying data. Using classic
+approaches to render geodata in a web browser either leaves users with a
+predefined, static layout (raster data) or a notable computation-intense
 rendering process (vector data).
 
-The two aforementioned solutions of styling and rendering web maps are widely 
-established and have proven effective. But both approaches have certain 
+The two aforementioned solutions of styling and rendering web maps are widely
+established and have proven effective. But both approaches have certain
 drawbacks.
 
 ====Raster Tiles====
 
-Data transmitted in prerendered '''raster''' data formats (e.g. png, jpg) does 
+Data transmitted in prerendered '''raster''' data formats (e.g. png, jpg) does
 not require any client-side processing and can be compressed and cached easily.
 This is used by major web mapping services like Google or Bing maps. The
-disadvantage for interactive mapping solutions is the lack of possibilities for 
-users to dynamically interact with the map and retrieve custom layouts at 
-runtime without requesting a full map tile reload. Web services using this 
-technology solve this with tiny vector overlays displaying additional 
-user-styled information. But it is not possible to interact with the map data 
+disadvantage for interactive mapping solutions is the lack of possibilities for
+users to dynamically interact with the map and retrieve custom layouts at
+runtime without requesting a full map tile reload. Web services using this
+technology solve this with tiny vector overlays displaying additional
+user-styled information. But it is not possible to interact with the map data
 itself.
 
 ====Vector Tiles====
 
-Geodata transmitted in '''vector''' formats (e.g. json, gml) opposes the raster 
+Geodata transmitted in '''vector''' formats (e.g. json, gml) opposes the raster
 tile approach and allows client-side stylization and rendering as the geographic
-raw data suddenly becomes available for the browser. But this advantage of 
-options utilizing the geodata in the client comes with a major drawback in 
-performance. Both the processing of the data and the rendering for the user are 
-solved with CPU-consuming JavaScript algorithms. Some more recent solutions 
-offer GPU-based rendering but fail with supplying convenient solutions of pre- 
+raw data suddenly becomes available for the browser. But this advantage of
+options utilizing the geodata in the client comes with a major drawback in
+performance. Both the processing of the data and the rendering for the user are
+solved with CPU-consuming JavaScript algorithms. Some more recent solutions
+offer GPU-based rendering but fail with supplying convenient solutions of pre-
 or postprocessing of the vector data.
 
 ====Challenge====
 
-The challenge now is twofold interesting. On the one hand it is important to 
-enable rendering using GPU-based techniques like 
+The challenge now is twofold interesting. On the one hand it is important to
+enable rendering using GPU-based techniques like
 [[https://khronos.org/registry/webgl/specs/latest|WebGL]]. This allows dynamic,
-interactive and user-defined layouts to be rendered directly on the client's 
-device. But on the other hand it is a must to completely eliminate the 
-client-side postprocessing of the geodata as this becomes a major performance 
+interactive and user-defined layouts to be rendered directly on the client's
+device. But on the other hand it is a must to completely eliminate the
+client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
 
-The solution presented in this work is a '''geometry'''-based approach rather 
+The solution presented in this work is a '''geometry'''-based approach rather
 than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
@@ -92,21 +92,21 @@ Geometry tiles are subdivided using common quadtree logic, similar to known
 raster or vector tiling services. The tiles get <code>{z, x, y}</code>
 coordinates similar to the
 [[http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/|Google Maps]]
-style, where <code>z</code> is the zoom and <code>x, y</code> the position 
+style, where <code>z</code> is the zoom and <code>x, y</code> the position
 on the flat, quadratic web-mercator worldmap.
 
 ====Zoom====
 
-There are <code>22</code> zoom levels by default. Level <code>0</code> 
+There are <code>22</code> zoom levels by default. Level <code>0</code>
 contains only one quadratic tile containing the whole world map on
-<code>{0, 0, 0}</code>. Level <code>21</code> contains 4,398,046,511,104 
-(<code>4^21</code>) tiles where the world's boundaries are 
-<code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>, 
+<code>{0, 0, 0}</code>. Level <code>21</code> contains 4,398,046,511,104
+(<code>4^21</code>) tiles where the world's boundaries are
+<code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>,
 <code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
 
 Additional zoom levels are not considered to be practicable but can easily
-added to the tiling logic following the <code>4^n</code> quadtree. The 
-defined number of zoom levels is not considired a binding boundary but 
+added to the tiling logic following the <code>4^n</code> quadtree. The
+defined number of zoom levels is not considired a binding boundary but
 rather a recommended minimum to align with existing solutions.
 
 ====Coordinates====
@@ -117,8 +117,8 @@ coordinates are positive integers. <code>x</code> increases along the
 equatorial axis from west to east. <code>y</code> increases along the
 meridianal axis from north to south.
 
-<code>z</code> is not considered to be a third dimension but rather the 
-current zoom level. Three dimensional data is not covered by this 
+<code>z</code> is not considered to be a third dimension but rather the
+current zoom level. Three dimensional data is not covered by this
 specification and sould be flattened.
 
 ====Generalization====
@@ -129,38 +129,38 @@ to the complexity of the underlying data.
 
 ===Projections===
 
-To minimize the processing of data and allow easy GL-transformations, it’s 
-important to reduce reprojections and avoid spherical units (e.g. degree, 
+To minimize the processing of data and allow easy GL-transformations, it’s
+important to reduce reprojections and avoid spherical units (e.g. degree,
 latitude/longitude).
 
 ====World Geodetic System====
 
 Most webmapping applications use the <code>EPSG:4326</code> standard projection
-which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude 
-coordinate format. This means, most programming interfaces return values in 
+which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude
+coordinate format. This means, most programming interfaces return values in
 degree.
 
 ====Web Mercator====
 
-Internally, many apps use <code>EPSG:3857</code>, the web mercator projection, 
+Internally, many apps use <code>EPSG:3857</code>, the web mercator projection,
 a metric system going back to Gerard Mercator’s
 [[http://ideas.time.com/2013/11/21/a-history-of-the-world-in-twelve-maps/slide/gerard-mercator-world-map-1569/|flat world map]]
 in 1569. It uses northing and easting as a measure of distance in meters from
 the equator and the prime meridian. This is already an advantage over WGS84 as
-it does not require computing-intense spheric transformations in calculations. 
+it does not require computing-intense spheric transformations in calculations.
 
 ====Pixel Mercator====
 
 To simplify the geographic coordinates, all geographic references will be
-reprojected on a single tile of size 256*256 pixel with it’s origin in the 
-northwest corner. 
+reprojected on a single tile of size 256*256 pixel with it’s origin in the
+northwest corner.
 
 =====Coordinates=====
 
-The pixel mercator origin initializes with <code>x=0.0</code> and 
+The pixel mercator origin initializes with <code>x=0.0</code> and
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
 is <code>x=256.0</code> and <code>y=256.0</code> in the southeast corner.
-In this reference system, for instance the Brandenburg Gate in Berlin would 
+In this reference system, for instance the Brandenburg Gate in Berlin would
 be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
 
 =====Precision=====
@@ -170,7 +170,7 @@ The smallest visible entitiy on raster tiles is a single pixel. On zoom level
 would render an image of 536,870,912 pixels width (an height accordingly).
 
 Following the pixel mercator coordinates, the smallest raster object would be
-<code>256/536870912=0.00000047684</code> units. We need a precision of at 
+<code>256/536870912=0.00000047684</code> units. We need a precision of at
 least 10 digits to determine such differences. Therefore a double precision
 floating point datatype is required. Single precision would only be acceptable
 for zoom levels <code>0</code> through <code>6</code>.
@@ -186,134 +186,134 @@ for zoom levels <code>0</code> through <code>6</code>.
 |align="right"|0
 |align="right"|1
 |align="right"|256
-|align="right"|001.0000
-|align="right"|001.00000000000000
+|style="text-align: right; background-color: #ccffcc;"|001.0000
+|style="text-align: right; background-color: #ccffcc;"|001.00000000000000
 |-
 |align="right"|1
 |align="right"|2
 |align="right"|512
-|align="right"|000.5000
-|align="right"|000.50000000000000
+|style="text-align: right; background-color: #ccffcc;"|000.5000
+|style="text-align: right; background-color: #ccffcc;"|000.50000000000000
 |-
 |align="right"|2
 |align="right"|4
 |align="right"|1024
-|align="right"|000.2500
-|align="right"|000.25000000000000
+|style="text-align: right; background-color: #ccffcc;"|000.2500
+|style="text-align: right; background-color: #ccffcc;"|000.25000000000000
 |-
 |align="right"|3
 |align="right"|8
 |align="right"|2048
-|align="right"|000.1250
-|align="right"|000.12500000000000
+|style="text-align: right; background-color: #ccffcc;"|000.1250
+|style="text-align: right; background-color: #ccffcc;"|000.12500000000000
 |-
 |align="right"|4
 |align="right"|16
 |align="right"|4096
-|align="right"|000.0625
-|align="right"|000.06250000000000
+|style="text-align: right; background-color: #ccffcc;"|000.0625
+|style="text-align: right; background-color: #ccffcc;"|000.06250000000000
 |-
 |align="right"|5
 |align="right"|32
 |align="right"|8192
-|align="right"|000.0312
-|align="right"|000.03125000000000
+|style="text-align: right; background-color: #ccffcc;"|000.0312
+|style="text-align: right; background-color: #ccffcc;"|000.03125000000000
 |-
 |align="right"|6
 |align="right"|64
 |align="right"|16384
-|align="right"|000.0156
-|align="right"|000.01562500000000
+|style="text-align: right; background-color: #ccffcc;"|000.0156
+|style="text-align: right; background-color: #ccffcc;"|000.01562500000000
 |-
 |align="right"|7
 |align="right"|128
 |align="right"|32768
-|align="right"|000.0078
-|align="right"|000.00781250000000
+|style="text-align: right; background-color: #ccffcc;"|000.0078
+|style="text-align: right; background-color: #ccffcc;"|000.00781250000000
 |-
 |align="right"|8
 |align="right"|256
 |align="right"|65536
-|align="right"|000.0039
-|align="right"|000.00390625000000
+|style="text-align: right; background-color: #ccffcc;"|000.0039
+|style="text-align: right; background-color: #ccffcc;"|000.00390625000000
 |-
 |align="right"|9
 |align="right"|512
 |align="right"|131072
-|align="right"|000.0019
-|align="right"|000.00195312500000
+|style="text-align: right; background-color: #ccffcc;"|000.0019
+|style="text-align: right; background-color: #ccffcc;"|000.00195312500000
 |-
 |align="right"|10
 |align="right"|1024
 |align="right"|262144
-|align="right"|000.0009
-|align="right"|000.00097656250000
+|style="text-align: right; background-color: #ccffcc;"|000.0009
+|style="text-align: right; background-color: #ccffcc;"|000.00097656250000
 |-
 |align="right"|11
 |align="right"|2048
 |align="right"|524288
-|align="right"|000.0004
-|align="right"|000.00048828125000
+|style="text-align: right; background-color: #ccffcc;"|000.0004
+|style="text-align: right; background-color: #ccffcc;"|000.00048828125000
 |-
 |align="right"|12
 |align="right"|4096
 |align="right"|1048576
-|align="right"|000.0002
-|align="right"|000.00024414062500
+|style="text-align: right; background-color: #ccffcc;"|000.0002
+|style="text-align: right; background-color: #ccffcc;"|000.00024414062500
 |-
 |align="right"|13
 |align="right"|8192
 |align="right"|2097152
-|align="right"|000.0001
-|align="right"|000.00012207031250
+|style="text-align: right; background-color: #ccffcc;"|000.0001
+|style="text-align: right; background-color: #ccffcc;"|000.00012207031250
 |-
 |align="right"|14
 |align="right"|16384
 |align="right"|4194304
-|align="right"| -
-|align="right"|000.00006103515625
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00006103515625
 |-
 |align="right"|15
 |align="right"|32768
 |align="right"|8388608
-|align="right"| -
-|align="right"|000.00003051757812
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00003051757812
 |-
 |align="right"|16
 |align="right"|65536
 |align="right"|16777216
-|align="right"| -
-|align="right"|000.00001525878906
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00001525878906
 |-
 |align="right"|17
 |align="right"|131072
 |align="right"|33554432
-|align="right"| -
-|align="right"|000.00000762939453
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000762939453
 |-
 |align="right"|18
 |align="right"|262144
 |align="right"|67108864
-|align="right"| -
-|align="right"|000.00000381469726
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000381469726
 |-
 |align="right"|19
 |align="right"|524288
 |align="right"|134217728
-|align="right"| -
-|align="right"|000.00000190734863
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000190734863
 |-
 |align="right"|20
 |align="right"|1048576
 |align="right"|268435456
-|align="right"| -
-|align="right"|000.00000095367431
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000095367431
 |-
 |align="right"|21
 |align="right"|2097152
 |align="right"|536870912
-|align="right"| -
-|align="right"|000.00000047683715
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000047683715
 |-
 |align="right"|..
 |align="right"|..
@@ -324,14 +324,14 @@ for zoom levels <code>0</code> through <code>6</code>.
 |align="right"|46
 |align="right"|70368744177664
 |align="right"|18014398509481984
-|align="right"| -
-|align="right"|000.00000000000001
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ccffcc;"|000.00000000000001
 |-
 |align="right"|47
 |align="right"|140737488355328
 |align="right"|36028797018963968
-|align="right"| -
-|align="right"| -
+|style="text-align: right; background-color: #ffcccc;"|000.0000
+|style="text-align: right; background-color: #ffcccc;"|000.00000000000000
 |-
 |}
 
@@ -348,8 +348,8 @@ this process. More details are available in the client specification.
 
 ===Transfer Formats===
 
-Due to the data-intense applications in webmapping services, most 
-implementations follow a client/server model. It’s important to research and 
+Due to the data-intense applications in webmapping services, most
+implementations follow a client/server model. It’s important to research and
 evaluate options on exchange formats for the underlying geodata.
 
 The following formats are considered worth for comparison.
@@ -359,15 +359,15 @@ The following formats are considered worth for comparison.
 * In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.
 * The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.
 
-Formats not taken into account are KML, Google’s equivalent to GML, and 
-TopoJSON, another JSON format with merged geometry fields. In addition, raster 
-data formats are ignored as they do not store any extractable geometry 
+Formats not taken into account are KML, Google’s equivalent to GML, and
+TopoJSON, another JSON format with merged geometry fields. In addition, raster
+data formats are ignored as they do not store any extractable geometry
 information.
 
-The table below compares the stated formats and evaluates both, their 
-space-complexity and postprocessing requirements. The space-complexity is 
-important to evaluate the required bandwidth for the application. The 
-postprocessing is the aforementioned bottleneck in performance of transforming 
+The table below compares the stated formats and evaluates both, their
+space-complexity and postprocessing requirements. The space-complexity is
+important to evaluate the required bandwidth for the application. The
+postprocessing is the aforementioned bottleneck in performance of transforming
 geographic data into close-to-hardware array buffers for the GPUs.
 
 {|
@@ -376,46 +376,46 @@ geographic data into close-to-hardware array buffers for the GPUs.
 !align="center"|Space-Complexity
 !Client-Postprocessing
 |-
-|.dae.gz
-|align="center"|<code>+ +</code>
-|required, decompress
+|style="text-align: center; background-color: #ffffcc;"|.dae.gz
+|style="text-align: center; background-color: #ccffcc;"|<code>+ +</code>
+|style="text-align: center; background-color: #ffcccc;"|required, decompress
 |-
-|.bgltf
-|align="center"|<code>+ o</code>
-|not required
+|style="text-align: center; background-color: #ccffcc;"|.bgltf
+|style="text-align: center; background-color: #ccffcc;"|<code>+ o</code>
+|style="text-align: center; background-color: #ccffcc;"|not required
 |-
-|.gltf.gz
-|align="center"|<code>+ o</code>
-|decompress only
+|style="text-align: center; background-color: #ffffcc;"|.gltf.gz
+|style="text-align: center; background-color: #ccffcc;"|<code>+ o</code>
+|style="text-align: center; background-color: #ffffcc;"|decompress only
 |-
-|.dae
-|align="center"|<code>o o</code>
-|required
+|style="text-align: center; background-color: #ffffcc;"|.dae
+|style="text-align: center; background-color: #ffffcc;"|<code>o o</code>
+|style="text-align: center; background-color: #ffcccc;"|required
 |-
-|.gltf
-|align="center"|<code>o -</code>
-|not required
+|style="text-align: center; background-color: #ffffcc;"|.gltf
+|style="text-align: center; background-color: #ffcccc;"|<code>o -</code>
+|style="text-align: center; background-color: #ccffcc;"|not required
 |-
-|.json
-|align="center"|<code>o -</code>
-|required
+|style="text-align: center; background-color: #ffcccc;"|.json
+|style="text-align: center; background-color: #ffcccc;"|<code>o -</code>
+|style="text-align: center; background-color: #ffcccc;"|required
 |-
-|.gml
-|align="center"|<code>- -</code>
-|required
+|style="text-align: center; background-color: #ffcccc;"|.gml
+|style="text-align: center; background-color: #ffcccc;"|<code>- -</code>
+|style="text-align: center; background-color: #ffcccc;"|required
 |}
 
-Concerning the space requirements, both glTF and COLLADA perform above average. 
-Base of the comparison are the Cesium Milk Truck and Cesium Man by 
+Concerning the space requirements, both glTF and COLLADA perform above average.
+Base of the comparison are the Cesium Milk Truck and Cesium Man by
 [[https://github.com/AnalyticalGraphicsInc/cesium/tree/c300529011714035cb254b493bf22b62ccf9da3d/Apps/SampleData/models|Analytical Graphics Inc]].
-The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped 
-version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of 
+The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped
+version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of
 space-complexity since both, JSON and XML formats are quite bloated.
 
 Concerning the client-side postprocessing requirements, only the OpenGL transfer
-format allows to store array buffers which eleminates any javascript processing 
+format allows to store array buffers which eleminates any javascript processing
 other than requesting and reading the data. This is an obvious knockout criteria
-for the other candidates and therefore glTF will be considered the best choice 
+for the other candidates and therefore glTF will be considered the best choice
 for this application.
 
 ===Geometry Buffer Logic===
