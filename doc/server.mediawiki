@@ -439,7 +439,19 @@ for this application.
 
 ===Geometry Buffer Logic===
 
+====Vertex Buffers====
+
+====Index Buffers====
+
+====Colour Buffers====
+
 ===API Specification===
+
+====Requests====
+
+====Responses====
+
+==Examples==
 
 ==Rationale==
 
