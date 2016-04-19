@@ -1,10 +1,10 @@
 <pre>
-  Title: Geometry Tiling
+  Title: glTF Tiling
   Subject: Backend Specification
   Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
-  Version: 0.1
+  Version: 0.2
   Created: 2015-12-09
 </pre>
 
@@ -72,7 +72,7 @@ device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
 
-The solution presented in this work is a '''geometry'''-based approach rather
+The solution presented in this work is a hardware-'''geometry'''-based approach rather
 than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
@@ -83,12 +83,12 @@ WebGL might render this solution obsolete.
 
 ==Specification==
 
-This is the technical specification for '''geometry tiling''', especially the backend
+This is the technical specification for '''gltf tiling''', especially the backend
 server sided preprocessing of the data and the API design.
 
 ===Map Tiling Logic===
 
-Geometry tiles are subdivided using common quadtree logic, similar to known
+glTF tiles are subdivided using common quadtree logic, similar to known
 raster or vector tiling services. The tiles get <code>{z, x, y}</code>
 coordinates similar to the
 [[http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/|Google Maps]]
@@ -437,7 +437,7 @@ other than requesting and reading the data. This is an obvious knockout criteria
 for the other candidates and therefore glTF will be considered the best choice
 for this application.
 
-===Geometry Buffer Logic===
+===WebGL Buffer Logic===
 
 ====Vertex Buffers====
 
