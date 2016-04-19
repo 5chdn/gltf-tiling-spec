@@ -6,6 +6,7 @@
   Status: Draft
   Version: 0.2
   Created: 2015-12-09
+  Updated: 2016-04-19
 </pre>
 </p>
 <p><table id="toc" class="toc" summary="Contents"><tr><td>
@@ -33,10 +34,7 @@
 <li><a href="#World_Geodetic_System">World Geodetic System</a></li>
 <li><a href="#Web_Mercator">Web Mercator</a></li>
 <li>
-<a href="#Pixel_Mercator">Pixel Mercator</a><ul>
-<li><a href="#Coordinates-2">Coordinates</a></li>
-<li><a href="#Precision">Precision</a></li>
-</ul>
+<a href="#Normalized_Mercator">Normalized Mercator</a><ul><li><a href="#Coordinates-2">Coordinates</a></li></ul>
 </li>
 </ul>
 </li>
@@ -45,7 +43,7 @@
 <a href="#WebGL_Buffer_Logic">WebGL Buffer Logic</a><ul>
 <li><a href="#Vertex_Buffers">Vertex Buffers</a></li>
 <li><a href="#Index_Buffers">Index Buffers</a></li>
-<li><a href="#Colour_Buffers">Colour Buffers</a></li>
+<li><a href="#Additional_Buffers">Additional Buffers</a></li>
 </ul>
 </li>
 <li>
@@ -70,14 +68,14 @@
 <p>Different approaches for styling and rendering maps in web applications exist.
 Widely used architectures are raster or vector services that provide web mapping
 apps with geodata in client/server models. Raster data is efficiently
-prerendered server-side using a static, predefined layout. Vector data can be
-rendered client-side using dynamic layouts with CPU-consuming JavaScript
+prerendered server-side using a static, predefined appearance. Vector data can be
+rendered client-side using dynamic stylization with CPU-consuming JavaScript
 postprocessing algorithms.
 </p>
 <p>In the light of powerful, dedicated graphics hardware being even available on
-mobile devices nowadays, this draft suggests new techniques for client-side
+mobile devices nowadays, this specification suggests new techniques for client-side
 rendering of web maps with complex geometries on GPUs. This technique allows to
-display complex geodata and maintain a dynamic, interactive layout while
+display complex geodata and maintain a dynamic, interactive styling while
 preserving real-time rendering performance and low response times.
 </p>
 <p>This part of the specification describes the server sided preprocessing of
@@ -94,7 +92,7 @@ colours.
 <p>Rendering huge geodata sets in web-based applications remains a performance
 critical task due to the complexity of the underlying data. Using classic
 approaches to render geodata in a web browser either leaves users with a
-predefined, static layout (raster data) or a notable computation-intense
+predefined, static style (raster data) or a notable computation-intense
 rendering process (vector data).
 </p>
 <p>The two aforementioned solutions of styling and rendering web maps are widely
@@ -108,11 +106,11 @@ drawbacks.
 
 
 
-<p>Data transmitted in prerendered <b>raster</b> data formats (e.g. png, jpg) does
+<p>Data transmitted in prerendered <b>raster</b> data formats (e.g., png, jpg) does
 not require any client-side processing and can be compressed and cached easily.
 This is used by major web mapping services like Google or Bing maps. The
 disadvantage for interactive mapping solutions is the lack of possibilities for
-users to dynamically interact with the map and retrieve custom layouts at
+users to dynamically interact with the map and retrieve custom styles at
 runtime without requesting a full map tile reload. Web services using this
 technology solve this with tiny vector overlays displaying additional
 user-styled information. But it is not possible to interact with the map data
@@ -125,14 +123,15 @@ itself.
 
 
 
-<p>Geodata transmitted in <b>vector</b> formats (e.g. json, gml) opposes the raster
+<p>Geodata transmitted in <b>vector</b> formats (e.g., json, gml) opposes the raster
 tile approach and allows client-side stylization and rendering as the geographic
 raw data suddenly becomes available for the browser. But this advantage of
 options utilizing the geodata in the client comes with a major drawback in
 performance. Both the processing of the data and the rendering for the user are
 solved with CPU-consuming JavaScript algorithms. Some more recent solutions
 offer GPU-based rendering but fail with supplying convenient solutions of pre-
-or postprocessing of the vector data.
+or postprocessing of the vector data. Performance bottlenecks are avoided by
+filtering the data on the backend side.
 </p>
 
 <h4>
@@ -144,7 +143,7 @@ or postprocessing of the vector data.
 <p>The challenge now is twofold interesting. On the one hand it is important to
 enable rendering using GPU-based techniques like
 <a href="https://khronos.org/registry/webgl/specs/latest">WebGL</a>. This allows dynamic,
-interactive and user-defined layouts to be rendered directly on the client's
+interactive and user-defined styles to be rendered directly on the client's
 device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
@@ -165,7 +164,7 @@ WebGL might render this solution obsolete.
 
 
 
-<p>This is the technical specification for <b>gltf tiling</b>, especially the backend
+<p>This is the technical specification for <b>glTF tiling</b>, especially the backend
 server sided preprocessing of the data and the API design.
 </p>
 
@@ -237,7 +236,7 @@ to the complexity of the underlying data.
 
 
 <p>To minimize the processing of data and allow easy OpenGL-transformations, it’s
-important to reduce reprojections and avoid spherical units (e.g. degree,
+important to reduce reprojections and avoid spherical units (e.g., degree,
 latitude/longitude).
 </p>
 
@@ -268,13 +267,13 @@ it does not require computing-intense spheric transformations in calculations.
 </p>
 
 <h4>
-<span class="editsection">[<a href="?section=Pixel_Mercator" title="Edit section: Abstract">edit</a>]</span> <a name="Pixel_Mercator"></a><span class="mw-headline" id="Pixel_Mercator">Pixel Mercator</span>
+<span class="editsection">[<a href="?section=Normalized_Mercator" title="Edit section: Abstract">edit</a>]</span> <a name="Normalized_Mercator"></a><span class="mw-headline" id="Normalized_Mercator">Normalized Mercator</span>
 </h4>
 
 
 
 <p>To simplify the geographic coordinates, all geographic references will be
-reprojected on a single tile of size 256*256 pixel with it’s origin in the
+normalized on a single scale between [0,] with it’s origin in the
 northwest corner.
 </p>
 
@@ -284,537 +283,11 @@ northwest corner.
 
 
 
-<p>The pixel mercator origin initializes with <code>x=0.0</code> and
+<p>This pixel projection origin initializes with <code>x=0.0</code> and
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
-is <code>x=256.0</code> and <code>y=256.0</code> in the southeast corner.
+is <code>x=1.0</code> and <code>y=1.0</code> in the southeast corner.
 In this reference system, for instance the Brandenburg Gate in Berlin would
-be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
-</p>
-
-<h5>
-<span class="editsection">[<a href="?section=Precision" title="Edit section: Abstract">edit</a>]</span> <a name="Precision"></a><span class="mw-headline" id="Precision">Precision</span>
-</h5>
-
-
-
-<p>The smallest visible entitiy on raster tiles is a single pixel. On zoom level
-<code>21</code> with 2,097,152 tiles with each tile containing 256 pixels
-would render an image of 536,870,912 pixels width (and height accordingly).
-</p>
-<p>Following the pixel mercator coordinates, the smallest raster object would be
-<code>256/536870912=0.00000047684</code> units. We need a precision of at
-least 10 digits to determine such differences. Therefore a double precision
-floating point datatype is required. Single precision would only be acceptable
-for zoom levels <code>0</code> through <code>6</code>.
-</p>
-<p><table>
-<caption>
-<b>Table - Single versus double precision</b>:</caption>
-<tr>
-<th>
-Zoom
-</th>
-<th>
-Tile-Width
-</th>
-<th>
-Pixel-Width
-</th>
-<th>
-Single
-</th>
-<th>
-Double
-</th>
-</tr>
-<tr>
-<td align="right">
-0
-</td>
-<td align="right">
-1
-</td>
-<td align="right">
-256
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-001.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-001.00000000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-1
-</td>
-<td align="right">
-2
-</td>
-<td align="right">
-512
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.5000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.50000000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-2
-</td>
-<td align="right">
-4
-</td>
-<td align="right">
-1024
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.2500
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.25000000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-3
-</td>
-<td align="right">
-8
-</td>
-<td align="right">
-2048
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.1250
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.12500000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-4
-</td>
-<td align="right">
-16
-</td>
-<td align="right">
-4096
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.0625
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.06250000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-5
-</td>
-<td align="right">
-32
-</td>
-<td align="right">
-8192
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.0312
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.03125000000000
-</td>
-</tr>
-<tr>
-<td align="right">
-6
-</td>
-<td align="right">
-64
-</td>
-<td align="right">
-16384
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.0156
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.01562500000000
-</td>
-</tr>
-<tr>
-<td align="right">
-7
-</td>
-<td align="right">
-128
-</td>
-<td align="right">
-32768
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0078
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00781250000000
-</td>
-</tr>
-<tr>
-<td align="right">
-8
-</td>
-<td align="right">
-256
-</td>
-<td align="right">
-65536
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0039
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00390625000000
-</td>
-</tr>
-<tr>
-<td align="right">
-9
-</td>
-<td align="right">
-512
-</td>
-<td align="right">
-131072
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0019
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00195312500000
-</td>
-</tr>
-<tr>
-<td align="right">
-10
-</td>
-<td align="right">
-1024
-</td>
-<td align="right">
-262144
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0009
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00097656250000
-</td>
-</tr>
-<tr>
-<td align="right">
-11
-</td>
-<td align="right">
-2048
-</td>
-<td align="right">
-524288
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0004
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00048828125000
-</td>
-</tr>
-<tr>
-<td align="right">
-12
-</td>
-<td align="right">
-4096
-</td>
-<td align="right">
-1048576
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0002
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00024414062500
-</td>
-</tr>
-<tr>
-<td align="right">
-13
-</td>
-<td align="right">
-8192
-</td>
-<td align="right">
-2097152
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.0001
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00012207031250
-</td>
-</tr>
-<tr>
-<td align="right">
-14
-</td>
-<td align="right">
-16384
-</td>
-<td align="right">
-4194304
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00006103515625
-</td>
-</tr>
-<tr>
-<td align="right">
-15
-</td>
-<td align="right">
-32768
-</td>
-<td align="right">
-8388608
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00003051757812
-</td>
-</tr>
-<tr>
-<td align="right">
-16
-</td>
-<td align="right">
-65536
-</td>
-<td align="right">
-16777216
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00001525878906
-</td>
-</tr>
-<tr>
-<td align="right">
-17
-</td>
-<td align="right">
-131072
-</td>
-<td align="right">
-33554432
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000762939453
-</td>
-</tr>
-<tr>
-<td align="right">
-18
-</td>
-<td align="right">
-262144
-</td>
-<td align="right">
-67108864
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000381469726
-</td>
-</tr>
-<tr>
-<td align="right">
-19
-</td>
-<td align="right">
-524288
-</td>
-<td align="right">
-134217728
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000190734863
-</td>
-</tr>
-<tr>
-<td align="right">
-20
-</td>
-<td align="right">
-1048576
-</td>
-<td align="right">
-268435456
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000095367431
-</td>
-</tr>
-<tr>
-<td align="right">
-21
-</td>
-<td align="right">
-2097152
-</td>
-<td align="right">
-536870912
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000047683715
-</td>
-</tr>
-<tr>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-</tr>
-<tr>
-<td align="right">
-39
-</td>
-<td align="right">
-549755813888
-</td>
-<td align="right">
-140737488355328
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ccffcc;">
-000.00000000000181
-</td>
-</tr>
-<tr>
-<td align="right">
-40
-</td>
-<td align="right">
-1099511627776
-</td>
-<td align="right">
-281474976710656
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.00000000000090
-</td>
-</tr>
-<tr>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-<td align="right">
-..
-</td>
-</tr>
-<tr>
-<td align="right">
-46
-</td>
-<td align="right">
-70368744177664
-</td>
-<td align="right">
-18014398509481984
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ffffcc;">
-000.00000000000001
-</td>
-</tr>
-<tr>
-<td align="right">
-47
-</td>
-<td align="right">
-140737488355328
-</td>
-<td align="right">
-36028797018963968
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.0000
-</td>
-<td style="text-align: right; background-color: #ffcccc;">
-000.00000000000000
-</td>
-</tr>
-</table>
-</p>
-<p>This allows enough precision through zoom level <code>39</code>, moves as
-close as we can get to hardware-coordinates and is still device-independent.
-</p>
-<p><b>Note on the frontend</b>: The OpenGL Shading Language (GLSL) only
-distinguishes between <code>lowp</code>, <code>mediump</code> and
-<code>highp</code> where the latter only offers single floating point
-precision (32 bit) and the others even lower. This is not to be confused with
-the considerations above as the rendering process projects all coordinates
-within the visible range of <code>[0,1]</code> without losing precisoin in
-this process. More details are available in the client specification.
+be at normalized mercator coordinate <code>{0.5371583, 0.3279734}</code>.
 </p>
 
 <h3>
@@ -836,7 +309,7 @@ evaluate options on exchange formats for the underlying geodata.
 
 <p><ul>
 <li>In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.</li>
-<li>The new OpenGL transfer fromat (<code>.gltf</code>) is currently being drafted by the Khronos Group [13] and promises to be a file format more close to the hardware requirements.</li>
+<li>The new OpenGL transfer fromat (<code>.gltf</code>) was recently released by the Khronos Group and promises to be a file format more close to the hardware requirements.</li>
 <li>In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.</li>
 <li>The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.</li>
 </ul>
@@ -877,7 +350,7 @@ required, decompress
 </tr>
 <tr>
 <td style="text-align: left; background-color: #ccffcc;">
-.bgltf
+.glb
 </td>
 <td style="text-align: center; background-color: #ccffcc;">
 <code>+ o</code>
@@ -945,8 +418,8 @@ required
 </p>
 <p>Concerning the space requirements, both glTF and COLLADA perform above average.
 Base of the comparison are the Cesium Milk Truck and Cesium Man by
-<a href="https://github.com/AnalyticalGraphicsInc/cesium/tree/c300529011714035cb254b493bf22b62ccf9da3d/Apps/SampleData/models">Analytical Graphics Inc</a>.
-The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped
+<a href="https://github.com/5chdn/gltf-tiling-spec/tree/gh-pages/dat/cesium">Analytical Graphics Inc</a>.
+The binary version of glTF (<code>.glb</code>) is even smaller than a gzipped
 version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of
 space-complexity since both, JSON and XML formats are quite bloated.
 </p>
@@ -956,12 +429,103 @@ other than requesting and reading the data. This is an obvious knockout criteria
 for the other candidates and therefore glTF will be considered the best choice
 for this application.
 </p>
+<p>For more details about the gltf format, please consult the full
+<a href="https://github.com/KhronosGroup/glTF/blob/master/specification/README.md">glTF Specification</a>.
+</p>
 
 <h3>
 <span class="editsection">[<a href="?section=WebGL_Buffer_Logic" title="Edit section: Abstract">edit</a>]</span> <a name="WebGL_Buffer_Logic"></a><span class="mw-headline" id="WebGL_Buffer_Logic">WebGL Buffer Logic</span>
 </h3>
 
 
+
+<p>@TODO <a href="http://computergraphics.stackexchange.com/questions/2303/what-is-an-index-buffer-and-how-is-it-related-to-vertex-buffers">http://computergraphics.stackexchange.com/questions/2303/what-is-an-index-buffer-and-how-is-it-related-to-vertex-buffers</a>
+</p>
+<p><table>
+<caption>Table - Vertices and Indices:</caption>
+<tr>
+<th>
+Index
+</th>
+<th>
+Vertex (X)
+</th>
+<th>
+Vertex (Y)
+</th>
+</tr>
+<tr>
+<td>
+0
+</td>
+<td>
+0.537167191505432
+</td>
+<td>
+0.327970743179321
+</td>
+</tr>
+<tr>
+<td>
+1
+</td>
+<td>
+0.537165760993958
+</td>
+<td>
+0.327970921993256
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+0.537165939807892
+</td>
+<td>
+0.327972143888473
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+0.537167310714722
+</td>
+<td>
+0.327972024679184
+</td>
+</tr>
+<tr>
+<td>
+4
+</td>
+<td>
+0.537164211273193
+</td>
+<td>
+0.327973991632462
+</td>
+</tr>
+<tr>
+<td>
+5
+</td>
+<td>
+0.537165582180023
+</td>
+<td>
+0.327973812818527
+</td>
+</tr>
+</table>
+</p>
+<p><img src="../img/buffer-3lines.png" alt="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." style="width:600px">
+</p>
+<p><img src="../img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification." style="width:600px">
+</p>
 
 
 <h4>
@@ -970,6 +534,18 @@ for this application.
 
 
 
+<p>- Vertex Buffer Size: 2 (x, y)
+</p>
+<p><pre>"vertices": [
+  0.537167191505432, 0.327970743179321,
+  0.537165760993958, 0.327970921993256,
+  0.537165939807892, 0.327972143888473,
+  0.537167310714722, 0.327972024679184,
+  0.537164211273193, 0.327973991632462,
+  0.537165582180023, 0.327973812818527
+]
+</pre>
+</p>
 
 <h4>
 <span class="editsection">[<a href="?section=Index_Buffers" title="Edit section: Abstract">edit</a>]</span> <a name="Index_Buffers"></a><span class="mw-headline" id="Index_Buffers">Index Buffers</span>
@@ -977,9 +553,19 @@ for this application.
 
 
 
+<p><pre>"indices": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5
+]
+</pre>
+</p>
 
 <h4>
-<span class="editsection">[<a href="?section=Colour_Buffers" title="Edit section: Abstract">edit</a>]</span> <a name="Colour_Buffers"></a><span class="mw-headline" id="Colour_Buffers">Colour Buffers</span>
+<span class="editsection">[<a href="?section=Additional_Buffers" title="Edit section: Abstract">edit</a>]</span> <a name="Additional_Buffers"></a><span class="mw-headline" id="Additional_Buffers">Additional Buffers</span>
 </h4>
 
 
@@ -991,6 +577,8 @@ for this application.
 
 
 
+<p>@TODO
+</p>
 
 <h4>
 <span class="editsection">[<a href="?section=Requests" title="Edit section: Abstract">edit</a>]</span> <a name="Requests"></a><span class="mw-headline" id="Requests">Requests</span>
@@ -1012,6 +600,8 @@ for this application.
 
 
 
+<p>@TODO <a href="https://gist.github.com/5chdn/e9967987b3fe81822d0dc3eb77670ebe">https://gist.github.com/5chdn/e9967987b3fe81822d0dc3eb77670ebe</a>
+</p>
 
 <h2>
 <span class="editsection">[<a href="?section=Rationale" title="Edit section: Abstract">edit</a>]</span> <a name="Rationale"></a><span class="mw-headline" id="Rationale">Rationale</span>
