@@ -275,9 +275,13 @@ For more details about the gltf format, please consult the full
 |0.327973812818527
 |}
 
-[[File:../img/buffer-3lines.png|600px|Three lines along the vertices with index [0,1]; [2,3]; and [4,5]. ]]
+=====Three lines along the vertices with index [0,1]; [2,3]; and [4,5].=====
 
-[[File:../img/buffer-preview.png|600px|The final result after realizing this specification. ]]
+<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-3lines.png" alt="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5].">
+
+=====The final result after realizing this specification.=====
+
+<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification.">
 
 
 ====Vertex Buffers====
