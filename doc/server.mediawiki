@@ -6,6 +6,7 @@
   Status: Draft
   Version: 0.2
   Created: 2015-12-09
+  Updated: 2016-04-19
 </pre>
 
 ==Abstract==
@@ -161,221 +162,19 @@ in 1569. It uses northing and easting as a measure of distance in meters from
 the equator and the prime meridian. This is already an advantage over WGS84 as
 it does not require computing-intense spheric transformations in calculations.
 
-====Pixel Mercator====
+====Normalized Mercator====
 
 To simplify the geographic coordinates, all geographic references will be
-reprojected on a single tile of size 256*256 pixel with it’s origin in the
+normalized on a single scale between [0, 1] with it’s origin in the
 northwest corner.
 
 =====Coordinates=====
 
-The pixel mercator origin initializes with <code>x=0.0</code> and
+This pixel projection origin initializes with <code>x=0.0</code> and
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
-is <code>x=256.0</code> and <code>y=256.0</code> in the southeast corner.
+is <code>x=1.0</code> and <code>y=1.0</code> in the southeast corner.
 In this reference system, for instance the Brandenburg Gate in Berlin would
-be at pixel mercator coordinate <code>{137.51253, 83.96120}</code>.
-
-=====Precision=====
-
-The smallest visible entitiy on raster tiles is a single pixel. On zoom level
-<code>21</code> with 2,097,152 tiles with each tile containing 256 pixels
-would render an image of 536,870,912 pixels width (and height accordingly).
-
-Following the pixel mercator coordinates, the smallest raster object would be
-<code>256/536870912=0.00000047684</code> units. We need a precision of at
-least 10 digits to determine such differences. Therefore a double precision
-floating point datatype is required. Single precision would only be acceptable
-for zoom levels <code>0</code> through <code>6</code>.
-
-{|
-|+ '''Table - Single versus double precision''':
-!Zoom
-!Tile-Width
-!Pixel-Width
-!Single
-!Double
-|-
-|align="right"|0
-|align="right"|1
-|align="right"|256
-|style="text-align: right; background-color: #ccffcc;"|001.0000
-|style="text-align: right; background-color: #ccffcc;"|001.00000000000000
-|-
-|align="right"|1
-|align="right"|2
-|align="right"|512
-|style="text-align: right; background-color: #ccffcc;"|000.5000
-|style="text-align: right; background-color: #ccffcc;"|000.50000000000000
-|-
-|align="right"|2
-|align="right"|4
-|align="right"|1024
-|style="text-align: right; background-color: #ccffcc;"|000.2500
-|style="text-align: right; background-color: #ccffcc;"|000.25000000000000
-|-
-|align="right"|3
-|align="right"|8
-|align="right"|2048
-|style="text-align: right; background-color: #ccffcc;"|000.1250
-|style="text-align: right; background-color: #ccffcc;"|000.12500000000000
-|-
-|align="right"|4
-|align="right"|16
-|align="right"|4096
-|style="text-align: right; background-color: #ccffcc;"|000.0625
-|style="text-align: right; background-color: #ccffcc;"|000.06250000000000
-|-
-|align="right"|5
-|align="right"|32
-|align="right"|8192
-|style="text-align: right; background-color: #ccffcc;"|000.0312
-|style="text-align: right; background-color: #ccffcc;"|000.03125000000000
-|-
-|align="right"|6
-|align="right"|64
-|align="right"|16384
-|style="text-align: right; background-color: #ccffcc;"|000.0156
-|style="text-align: right; background-color: #ccffcc;"|000.01562500000000
-|-
-|align="right"|7
-|align="right"|128
-|align="right"|32768
-|style="text-align: right; background-color: #ffffcc;"|000.0078
-|style="text-align: right; background-color: #ccffcc;"|000.00781250000000
-|-
-|align="right"|8
-|align="right"|256
-|align="right"|65536
-|style="text-align: right; background-color: #ffffcc;"|000.0039
-|style="text-align: right; background-color: #ccffcc;"|000.00390625000000
-|-
-|align="right"|9
-|align="right"|512
-|align="right"|131072
-|style="text-align: right; background-color: #ffffcc;"|000.0019
-|style="text-align: right; background-color: #ccffcc;"|000.00195312500000
-|-
-|align="right"|10
-|align="right"|1024
-|align="right"|262144
-|style="text-align: right; background-color: #ffffcc;"|000.0009
-|style="text-align: right; background-color: #ccffcc;"|000.00097656250000
-|-
-|align="right"|11
-|align="right"|2048
-|align="right"|524288
-|style="text-align: right; background-color: #ffffcc;"|000.0004
-|style="text-align: right; background-color: #ccffcc;"|000.00048828125000
-|-
-|align="right"|12
-|align="right"|4096
-|align="right"|1048576
-|style="text-align: right; background-color: #ffffcc;"|000.0002
-|style="text-align: right; background-color: #ccffcc;"|000.00024414062500
-|-
-|align="right"|13
-|align="right"|8192
-|align="right"|2097152
-|style="text-align: right; background-color: #ffffcc;"|000.0001
-|style="text-align: right; background-color: #ccffcc;"|000.00012207031250
-|-
-|align="right"|14
-|align="right"|16384
-|align="right"|4194304
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00006103515625
-|-
-|align="right"|15
-|align="right"|32768
-|align="right"|8388608
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00003051757812
-|-
-|align="right"|16
-|align="right"|65536
-|align="right"|16777216
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00001525878906
-|-
-|align="right"|17
-|align="right"|131072
-|align="right"|33554432
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000762939453
-|-
-|align="right"|18
-|align="right"|262144
-|align="right"|67108864
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000381469726
-|-
-|align="right"|19
-|align="right"|524288
-|align="right"|134217728
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000190734863
-|-
-|align="right"|20
-|align="right"|1048576
-|align="right"|268435456
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000095367431
-|-
-|align="right"|21
-|align="right"|2097152
-|align="right"|536870912
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000047683715
-|-
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|-
-|align="right"|39
-|align="right"|549755813888
-|align="right"|140737488355328
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ccffcc;"|000.00000000000181
-|-
-|align="right"|40
-|align="right"|1099511627776
-|align="right"|281474976710656
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ffffcc;"|000.00000000000090
-|-
-|-
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|align="right"|..
-|-
-|align="right"|46
-|align="right"|70368744177664
-|align="right"|18014398509481984
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ffffcc;"|000.00000000000001
-|-
-|align="right"|47
-|align="right"|140737488355328
-|align="right"|36028797018963968
-|style="text-align: right; background-color: #ffcccc;"|000.0000
-|style="text-align: right; background-color: #ffcccc;"|000.00000000000000
-|-
-|}
-
-This allows enough precision through zoom level <code>39</code>, moves as
-close as we can get to hardware-coordinates and is still device-independent.
-
-'''Note on the frontend''': The OpenGL Shading Language (GLSL) only
-distinguishes between <code>lowp</code>, <code>mediump</code> and
-<code>highp</code> where the latter only offers single floating point
-precision (32 bit) and the others even lower. This is not to be confused with
-the considerations above as the rendering process projects all coordinates
-within the visible range of <code>[0,1]</code> without losing precisoin in
-this process. More details are available in the client specification.
+be at normalized mercator coordinate <code>{0.5371583, 0.3279734}</code>.
 
 ===Transfer Formats===
 
