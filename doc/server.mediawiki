@@ -88,17 +88,6 @@ WebGL might render this solution obsolete.
 This is the technical specification for '''glTF tiling''', especially the backend
 server sided preprocessing of the data and the API design.
 
-===Graphics Library Transmission Format===
-
-The Graphics Library Transmission Format (glTF) is a runtime asset delivery
-format for OpenGL, OpenGL ES and WebGL. It was defined by the Khonos Group and
-released in October 2015. glTF bridges the gap between 3D content creation tools
-and modern GL applications by providing an efficient, extensible, interoperable
-format for the transmission and loading of 3D content.
-
-For more details about the file format, please consult the full
-[[https://github.com/KhronosGroup/glTF/blob/master/specification/README.md|glTF Specification]].
-
 ===Map Tiling Logic===
 
 glTF tiles are subdivided using common quadtree logic, similar to known
@@ -185,7 +174,7 @@ evaluate options on exchange formats for the underlying geodata.
 The following formats are considered worth for comparison.
 
 * In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.
-* The new OpenGL transfer fromat (<code>.gltf</code>) is currently being drafted by the Khronos Group [13] and promises to be a file format more close to the hardware requirements.
+* The new OpenGL transfer fromat (<code>.gltf</code>) was recently released by the Khronos Group and promises to be a file format more close to the hardware requirements.
 * In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.
 * The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.
 
@@ -210,7 +199,7 @@ geographic data into close-to-hardware array buffers for the GPUs.
 |style="text-align: center; background-color: #ccffcc;"|<code>+ +</code>
 |style="text-align: center; background-color: #ffcccc;"|required, decompress
 |-
-|style="text-align: left; background-color: #ccffcc;"|.bgltf
+|style="text-align: left; background-color: #ccffcc;"|.glb
 |style="text-align: center; background-color: #ccffcc;"|<code>+ o</code>
 |style="text-align: center; background-color: #ccffcc;"|not required
 |-
@@ -237,8 +226,8 @@ geographic data into close-to-hardware array buffers for the GPUs.
 
 Concerning the space requirements, both glTF and COLLADA perform above average.
 Base of the comparison are the Cesium Milk Truck and Cesium Man by
-[[https://github.com/AnalyticalGraphicsInc/cesium/tree/c300529011714035cb254b493bf22b62ccf9da3d/Apps/SampleData/models|Analytical Graphics Inc]].
-The binary version of glTF (<code>.bgltf</code>) is even smaller than a gzipped
+[[https://github.com/5chdn/gltf-tiling-spec/tree/gh-pages/dat/cesium|Analytical Graphics Inc]].
+The binary version of glTF (<code>.glb</code>) is even smaller than a gzipped
 version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of
 space-complexity since both, JSON and XML formats are quite bloated.
 
@@ -247,6 +236,9 @@ format allows to store array buffers which eleminates any javascript processing
 other than requesting and reading the data. This is an obvious knockout criteria
 for the other candidates and therefore glTF will be considered the best choice
 for this application.
+
+For more details about the gltf format, please consult the full
+[[https://github.com/KhronosGroup/glTF/blob/master/specification/README.md|glTF Specification]].
 
 ===WebGL Buffer Logic===
 
