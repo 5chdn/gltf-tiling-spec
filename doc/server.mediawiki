@@ -13,14 +13,14 @@
 Different approaches for styling and rendering maps in web applications exist.
 Widely used architectures are raster or vector services that provide web mapping
 apps with geodata in client/server models. Raster data is efficiently
-prerendered server-side using a static, predefined layout. Vector data can be
-rendered client-side using dynamic layouts with CPU-consuming JavaScript
+prerendered server-side using a static, predefined appearance. Vector data can be
+rendered client-side using dynamic stylization with CPU-consuming JavaScript
 postprocessing algorithms.
 
 In the light of powerful, dedicated graphics hardware being even available on
-mobile devices nowadays, this draft suggests new techniques for client-side
+mobile devices nowadays, this specification suggests new techniques for client-side
 rendering of web maps with complex geometries on GPUs. This technique allows to
-display complex geodata and maintain a dynamic, interactive layout while
+display complex geodata and maintain a dynamic, interactive styling while
 preserving real-time rendering performance and low response times.
 
 This part of the specification describes the server sided preprocessing of
@@ -32,7 +32,7 @@ colours.
 Rendering huge geodata sets in web-based applications remains a performance
 critical task due to the complexity of the underlying data. Using classic
 approaches to render geodata in a web browser either leaves users with a
-predefined, static layout (raster data) or a notable computation-intense
+predefined, static style (raster data) or a notable computation-intense
 rendering process (vector data).
 
 The two aforementioned solutions of styling and rendering web maps are widely
@@ -41,11 +41,11 @@ drawbacks.
 
 ====Raster Tiles====
 
-Data transmitted in prerendered '''raster''' data formats (e.g. png, jpg) does
+Data transmitted in prerendered '''raster''' data formats (e.g., png, jpg) does
 not require any client-side processing and can be compressed and cached easily.
 This is used by major web mapping services like Google or Bing maps. The
 disadvantage for interactive mapping solutions is the lack of possibilities for
-users to dynamically interact with the map and retrieve custom layouts at
+users to dynamically interact with the map and retrieve custom styles at
 runtime without requesting a full map tile reload. Web services using this
 technology solve this with tiny vector overlays displaying additional
 user-styled information. But it is not possible to interact with the map data
@@ -53,21 +53,22 @@ itself.
 
 ====Vector Tiles====
 
-Geodata transmitted in '''vector''' formats (e.g. json, gml) opposes the raster
+Geodata transmitted in '''vector''' formats (e.g., json, gml) opposes the raster
 tile approach and allows client-side stylization and rendering as the geographic
 raw data suddenly becomes available for the browser. But this advantage of
 options utilizing the geodata in the client comes with a major drawback in
 performance. Both the processing of the data and the rendering for the user are
 solved with CPU-consuming JavaScript algorithms. Some more recent solutions
 offer GPU-based rendering but fail with supplying convenient solutions of pre-
-or postprocessing of the vector data.
+or postprocessing of the vector data. Performance bottlenecks are avoided by
+filtering the data on the backend side.
 
 ====Challenge====
 
 The challenge now is twofold interesting. On the one hand it is important to
 enable rendering using GPU-based techniques like
 [[https://khronos.org/registry/webgl/specs/latest|WebGL]]. This allows dynamic,
-interactive and user-defined layouts to be rendered directly on the client's
+interactive and user-defined styles to be rendered directly on the client's
 device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
@@ -83,8 +84,19 @@ WebGL might render this solution obsolete.
 
 ==Specification==
 
-This is the technical specification for '''gltf tiling''', especially the backend
+This is the technical specification for '''glTF tiling''', especially the backend
 server sided preprocessing of the data and the API design.
+
+===Graphics Library Transmission Format===
+
+The Graphics Library Transmission Format (glTF) is a runtime asset delivery
+format for OpenGL, OpenGL ES and WebGL. It was defined by the Khonos Group and
+released in October 2015. glTF bridges the gap between 3D content creation tools
+and modern GL applications by providing an efficient, extensible, interoperable
+format for the transmission and loading of 3D content.
+
+For more details about the file format, please consult the full
+[[https://github.com/KhronosGroup/glTF/blob/master/specification/README.md|glTF Specification]].
 
 ===Map Tiling Logic===
 
@@ -130,7 +142,7 @@ to the complexity of the underlying data.
 ===Projections===
 
 To minimize the processing of data and allow easy OpenGL-transformations, it’s
-important to reduce reprojections and avoid spherical units (e.g. degree,
+important to reduce reprojections and avoid spherical units (e.g., degree,
 latitude/longitude).
 
 ====World Geodetic System====
