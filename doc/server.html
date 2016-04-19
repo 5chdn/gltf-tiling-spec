@@ -1,10 +1,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><link rel="stylesheet" href="doc.css" type="text/css" /><title="Geometry Tiling Specification: Server" /></head><body>
-<p><pre>  Title: Geometry Tiling
+<p><pre>  Title: glTF Tiling
   Subject: Backend Specification
   Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
-  Version: 0.1
+  Version: 0.2
   Created: 2015-12-09
 </pre>
 </p>
@@ -42,7 +42,7 @@
 </li>
 <li><a href="#Transfer_Formats">Transfer Formats</a></li>
 <li>
-<a href="#Geometry_Buffer_Logic">Geometry Buffer Logic</a><ul>
+<a href="#WebGL_Buffer_Logic">WebGL Buffer Logic</a><ul>
 <li><a href="#Vertex_Buffers">Vertex Buffers</a></li>
 <li><a href="#Index_Buffers">Index Buffers</a></li>
 <li><a href="#Colour_Buffers">Colour Buffers</a></li>
@@ -149,7 +149,7 @@ device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
 </p>
-<p>The solution presented in this work is a <b>geometry</b>-based approach rather
+<p>The solution presented in this work is a hardware-<b>geometry</b>-based approach rather
 than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
@@ -165,7 +165,7 @@ WebGL might render this solution obsolete.
 
 
 
-<p>This is the technical specification for <b>geometry tiling</b>, especially the backend
+<p>This is the technical specification for <b>gltf tiling</b>, especially the backend
 server sided preprocessing of the data and the API design.
 </p>
 
@@ -175,7 +175,7 @@ server sided preprocessing of the data and the API design.
 
 
 
-<p>Geometry tiles are subdivided using common quadtree logic, similar to known
+<p>glTF tiles are subdivided using common quadtree logic, similar to known
 raster or vector tiling services. The tiles get <code>{z, x, y}</code>
 coordinates similar to the
 <a href="http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/">Google Maps</a>
@@ -958,7 +958,7 @@ for this application.
 </p>
 
 <h3>
-<span class="editsection">[<a href="?section=Geometry_Buffer_Logic" title="Edit section: Abstract">edit</a>]</span> <a name="Geometry_Buffer_Logic"></a><span class="mw-headline" id="Geometry_Buffer_Logic">Geometry Buffer Logic</span>
+<span class="editsection">[<a href="?section=WebGL_Buffer_Logic" title="Edit section: Abstract">edit</a>]</span> <a name="WebGL_Buffer_Logic"></a><span class="mw-headline" id="WebGL_Buffer_Logic">WebGL Buffer Logic</span>
 </h3>
 
 
