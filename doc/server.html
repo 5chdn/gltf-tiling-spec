@@ -47,7 +47,7 @@
 </ul>
 </li>
 <li>
-<a href="#API_Specification">API Specification</a><ul>
+<a href="#API_Parameters">API Parameters</a><ul>
 <li><a href="#Requests">Requests</a></li>
 <li><a href="#Responses">Responses</a></li>
 </ul>
@@ -439,7 +439,10 @@ for this application.
 
 
 
-<p>@TODO <a href="http://computergraphics.stackexchange.com/questions/2303/what-is-an-index-buffer-and-how-is-it-related-to-vertex-buffers">http://computergraphics.stackexchange.com/questions/2303/what-is-an-index-buffer-and-how-is-it-related-to-vertex-buffers</a>
+<p>To render multiple line primitives in a single WebGL draw call it's recommended
+to pass both vertex and index buffers to the graphic processing unit. The
+following table displays a test data set of several edges in the center of
+Berlin with indices, x-coordinates, and y-coordinates.
 </p>
 <p><table>
 <caption>Table - Vertices and Indices:</caption>
@@ -522,11 +525,6 @@ Vertex (Y)
 </tr>
 </table>
 </p>
-<p><img src="../img/buffer-3lines.png" alt="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." style="width:600px">
-</p>
-<p><img src="../img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification." style="width:600px">
-</p>
-
 
 <h4>
 <span class="editsection">[<a href="?section=Vertex_Buffers" title="Edit section: Abstract">edit</a>]</span> <a name="Vertex_Buffers"></a><span class="mw-headline" id="Vertex_Buffers">Vertex Buffers</span>
@@ -534,9 +532,16 @@ Vertex (Y)
 
 
 
-<p>- Vertex Buffer Size: 2 (x, y)
+<p>The vertex buffers
+<a href="http://computergraphics.stackexchange.com/q/2303/361">usually only hold coordinates</a>
+(X, Y). The vertex buffer size (or dimension) is therefore two. It's recommended
+to eliminate duplicate entries to reduce the size of the dataset. Multiple
+references to the same vertex are realized with pointing indices in the
+according sequence to the first occurence of the coordinates in the vertex
+buffer.
 </p>
-<p><pre>"vertices": [
+<p><code>"vertexSize": 2,
+"vertices": [
   0.537167191505432, 0.327970743179321,
   0.537165760993958, 0.327970921993256,
   0.537165939807892, 0.327972143888473,
@@ -544,7 +549,7 @@ Vertex (Y)
   0.537164211273193, 0.327973991632462,
   0.537165582180023, 0.327973812818527
 ]
-</pre>
+</code>
 </p>
 
 <h4>
@@ -553,7 +558,17 @@ Vertex (Y)
 
 
 
-<p><pre>"indices": [
+<p>The index buffer contains information about which lines to draw between the
+vertices. It uses the index of each vertex in the vertex buffer as a value.
+</p>
+<p>The following index buffer draws three separated lines. The
+<a href="http://www.tutorialspoint.com/webgl/webgl_modes_of_drawing.htm">gl.LINES mode</a>
+always draws one unconnected line segment between two vertices as specified in
+the index buffer.
+</p>
+<p><code>"drawMode": "LINES",
+"indexSize": 1,
+"indices": [
   0,
   1,
   2,
@@ -561,7 +576,12 @@ Vertex (Y)
   4,
   5
 ]
-</pre>
+</code>
+</p>
+<p>The following screenshot shows the rendered output of the example vertex and
+index buffers as specified above.
+</p>
+<p><img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-3lines.png" title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5].">
 </p>
 
 <h4>
@@ -570,15 +590,24 @@ Vertex (Y)
 
 
 
+<p>Additional buffers can be added to the scene at will. They could encode anything
+from color buffers directly supplying the lines with colors to meta information
+like line types, or in this specific case of encuding street geometries:
+<a href="wiki.openstreetmap.org/wiki/Map_Features">wiki.openstreetmap.org/wiki/Map_Features</a>.
+</p>
+<p>The final result after realizing this specification could look like the
+following screenshot. Here are travel times directly encoded in an additional
+color buffer.
+</p>
+<p><img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" title="The final result after realizing this specification.">
+</p>
 
 <h3>
-<span class="editsection">[<a href="?section=API_Specification" title="Edit section: Abstract">edit</a>]</span> <a name="API_Specification"></a><span class="mw-headline" id="API_Specification">API Specification</span>
+<span class="editsection">[<a href="?section=API_Parameters" title="Edit section: Abstract">edit</a>]</span> <a name="API_Parameters"></a><span class="mw-headline" id="API_Parameters">API Parameters</span>
 </h3>
 
 
 
-<p>@TODO
-</p>
 
 <h4>
 <span class="editsection">[<a href="?section=Requests" title="Edit section: Abstract">edit</a>]</span> <a name="Requests"></a><span class="mw-headline" id="Requests">Requests</span>
@@ -586,21 +615,51 @@ Vertex (Y)
 
 
 
+<p>Requests to the backend should include at least the following parameters.
+</p>
 
+
+
+
+
+<ul>
+<li>Zoom level to define the map scale.</li>
+<li>X-coordinate of the tile at the specified zoom level.</li>
+<li>Y-Coordinate of the tile at the specified zoom level.</li>
+</ul>
 <h4>
 <span class="editsection">[<a href="?section=Responses" title="Edit section: Abstract">edit</a>]</span> <a name="Responses"></a><span class="mw-headline" id="Responses">Responses</span>
 </h4>
 
 
 
+<p>glTF Data should return with at least the following content.
+</p>
 
+
+
+
+
+
+
+
+<ul>
+<li>Basic scene description.</li>
+<li>Array buffer for vertices.</li>
+<li>Array buffer for indices.</li>
+<li>Size of vertex elements (dimension, recommended: 2).</li>
+<li>The WebGl draw mode (recommended: LINES).</li>
+<li>The scale of the world (recommended: 1).</li>
+</ul>
 <h2>
 <span class="editsection">[<a href="?section=Examples" title="Edit section: Abstract">edit</a>]</span> <a name="Examples"></a><span class="mw-headline" id="Examples">Examples</span>
 </h2>
 
 
 
-<p>@TODO <a href="https://gist.github.com/5chdn/e9967987b3fe81822d0dc3eb77670ebe">https://gist.github.com/5chdn/e9967987b3fe81822d0dc3eb77670ebe</a>
+<p>Find some gltf and pseudo gltf json
+<a href="https://github.com/5chdn/gltf-tiling-spec/tree/gh-pages/dat/examples" target="_blank">examples</a>
+here in the repository.
 </p>
 
 <h2>
@@ -609,6 +668,13 @@ Vertex (Y)
 
 
 
+<p>This draft is early work in progress and may be subject to change at any time.
+</p>
+<p>Please use the <a href="https://github.com/5chdn/gltf-tiling-spec/issues" target="_blank">issue tracker</a>
+to point out problems or uncertainty or create
+<a href="https://github.com/5chdn/gltf-tiling-spec/pulls" target="_blank">pull requests</a> to suggest
+improvement proposals.
+</p>
 
 <h2>
 <span class="editsection">[<a href="?section=Copyright" title="Edit section: Abstract">edit</a>]</span> <a name="Copyright"></a><span class="mw-headline" id="Copyright">Copyright</span>
