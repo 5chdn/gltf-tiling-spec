@@ -341,13 +341,26 @@ color buffer.
 
 <img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification.">
 
-===API Specification===
-
-@TODO
+===API Parameters===
 
 ====Requests====
 
+Requests to the backend should include at least the following parameters.
+
+* Zoom level to define the map scale.
+* X-coordinate of the tile at the specified zoom level.
+* Y-Coordinate of the tile at the specified zoom level.
+
 ====Responses====
+
+glTF Data should return with at least the following content.
+
+* Basic scene description.
+* Array buffer for vertices.
+* Array buffer for indices.
+* Size of vertex elements (dimension, recommended: 2).
+* The WebGl draw mode (recommended: LINES).
+* The scale of the world (recommended: 1).
 
 ==Examples==
 
