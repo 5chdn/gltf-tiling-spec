@@ -335,6 +335,12 @@ from color buffers directly supplying the lines with colors to meta information
 like line types, or in this specific case of encuding street geometries:
 [[wiki.openstreetmap.org/wiki/Map_Features#Highway||map feature classes]].
 
+The final result after realizing this specification could look like the
+following screenshot. Here are travel times directly encoded in an additional
+color buffer.
+
+<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification.">
+
 ===API Specification===
 
 @TODO
