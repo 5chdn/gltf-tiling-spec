@@ -242,7 +242,10 @@ For more details about the gltf format, please consult the full
 
 ===WebGL Buffer Logic===
 
-@TODO http://computergraphics.stackexchange.com/questions/2303/what-is-an-index-buffer-and-how-is-it-related-to-vertex-buffers
+To render multiple line primitives in a single WebGL draw call it's recommended
+to pass both vertex and index buffers to the graphic processing unit. The
+following table displays a test data set of several edges in the center of
+Berlin with indices, x-coordinates, and y-coordinates.
 
 {|
 |+ Table - Vertices and Indices:
@@ -275,20 +278,18 @@ For more details about the gltf format, please consult the full
 |0.327973812818527
 |}
 
-=====Three lines along the vertices with index [0,1]; [2,3]; and [4,5].=====
-
-<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-3lines.png" alt="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5].">
-
-=====The final result after realizing this specification.=====
-
-<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" alt="The final result after realizing this specification." title="The final result after realizing this specification.">
-
-
 ====Vertex Buffers====
 
-- Vertex Buffer Size: 2 (x, y)
+The vertex buffers
+[[http://computergraphics.stackexchange.com/q/2303/361|usually only hold coordinates]]
+(X, Y). The vertex buffer size (or dimension) is therefore two. It's recommended
+to eliminate duplicate entries to reduce the size of the dataset. Multiple
+references to the same vertex are realized with pointing indices in the
+according sequence to the first occurence of the coordinates in the vertex
+buffer.
 
-<pre>
+<code>
+"vertexSize": 2,
 "vertices": [
   0.537167191505432, 0.327970743179321,
   0.537165760993958, 0.327970921993256,
@@ -297,11 +298,21 @@ For more details about the gltf format, please consult the full
   0.537164211273193, 0.327973991632462,
   0.537165582180023, 0.327973812818527
 ]
-</pre>
+</code>
 
 ====Index Buffers====
 
-<pre>
+The index buffer contains information about which lines to draw between the
+vertices. It uses the index of each vertex in the vertex buffer as a value.
+
+The following index buffer draws three separated lines. The <pre>gl.LINES</pre>
+[[http://www.tutorialspoint.com/webgl/webgl_modes_of_drawing.htm|mode]] always
+draws one unconnected line segment between two vertices as specified in the
+index buffer.
+
+<code>
+"drawMode": "LINES"
+"indexSize": 1,
 "indices": [
   0,
   1,
@@ -310,9 +321,19 @@ For more details about the gltf format, please consult the full
   4,
   5
 ]
-</pre>
+</code>
+
+The following screenshot shows the rendered output of the example vertex and
+index buffers as specified above.
+
+<img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-3lines.png" alt="Three lines along the vertices with index [0,1]; [2,3]; and [4,5]." title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5].">
 
 ====Additional Buffers====
+
+Additional buffers can be added to the scene at will. They could encode anything
+from color buffers directly supplying the lines with colors to meta information
+like line types, or in this specific case of encuding street geometries:
+[[wiki.openstreetmap.org/wiki/Map_Features#Highway||map feature classes]].
 
 ===API Specification===
 
