@@ -6,7 +6,7 @@
   Status: Draft
   Version: 0.2
   Created: 2015-12-09
-  Updated: 2016-04-19
+  Updated: 2016-04-27
 </pre>
 
 ==Abstract==
@@ -157,8 +157,6 @@ To simplify the geographic coordinates, all geographic references will be
 normalized on a single scale between [0, 1] with it’s origin in the
 northwest corner.
 
-=====Coordinates=====
-
 This pixel projection origin initializes with <code>x=0.0</code> and
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
 is <code>x=1.0</code> and <code>y=1.0</code> in the southeast corner.
@@ -288,7 +286,8 @@ references to the same vertex are realized with pointing indices in the
 according sequence to the first occurence of the coordinates in the vertex
 buffer.
 
-<code>
+<pre>
+"worldScale": 1,
 "vertexSize": 2,
 "vertices": [
   0.537167191505432, 0.327970743179321,
@@ -298,7 +297,7 @@ buffer.
   0.537164211273193, 0.327973991632462,
   0.537165582180023, 0.327973812818527
 ]
-</code>
+</pre>
 
 ====Index Buffers====
 
@@ -310,7 +309,7 @@ The following index buffer draws three separated lines. The
 always draws one unconnected line segment between two vertices as specified in
 the index buffer.
 
-<code>
+<pre>
 "drawMode": "LINES",
 "indexSize": 1,
 "indices": [
@@ -321,7 +320,7 @@ the index buffer.
   4,
   5
 ]
-</code>
+</pre>
 
 The following screenshot shows the rendered output of the example vertex and
 index buffers as specified above.
@@ -333,7 +332,7 @@ index buffers as specified above.
 Additional buffers can be added to the scene at will. They could encode anything
 from color buffers directly supplying the lines with colors to meta information
 like line types, or in this specific case of encuding street geometries:
-[[wiki.openstreetmap.org/wiki/Map_Features||map feature classes]].
+[[http://wiki.openstreetmap.org/wiki/Map_Features#Highway||map feature classes]].
 
 The final result after realizing this specification could look like the
 following screenshot. Here are travel times directly encoded in an additional
@@ -349,7 +348,7 @@ Requests to the backend should include at least the following parameters.
 
 * Zoom level to define the map scale.
 * X-coordinate of the tile at the specified zoom level.
-* Y-Coordinate of the tile at the specified zoom level.
+* Y-coordinate of the tile at the specified zoom level.
 
 ====Responses====
 
@@ -379,4 +378,5 @@ improvement proposals.
 
 ==Copyright==
 
-This document is placed in the public domain under CC0 conditions.
+This document is placed in the public domain under
+[[https://github.com/5chdn/gltf-tiling-spec/blob/gh-pages/LICENSE|CC0 conditions]].
