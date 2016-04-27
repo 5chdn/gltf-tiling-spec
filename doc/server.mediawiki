@@ -333,7 +333,7 @@ index buffers as specified above.
 Additional buffers can be added to the scene at will. They could encode anything
 from color buffers directly supplying the lines with colors to meta information
 like line types, or in this specific case of encuding street geometries:
-[[wiki.openstreetmap.org/wiki/Map_Features#Highway||map feature classes]].
+[[wiki.openstreetmap.org/wiki/Map_Features||map feature classes]].
 
 The final result after realizing this specification could look like the
 following screenshot. Here are travel times directly encoded in an additional
@@ -354,6 +354,13 @@ color buffer.
 @TODO https://gist.github.com/5chdn/e9967987b3fe81822d0dc3eb77670ebe
 
 ==Rationale==
+
+This draft is early work in progress and may be subject to change at any time.
+
+Please use the [[https://github.com/5chdn/gltf-tiling-spec/issues|issue tracker]]
+to point out problems or uncertainty or create
+[[https://github.com/5chdn/gltf-tiling-spec/pulls|pull requests]] to suggest
+improvement proposals.
 
 ==Copyright==
 
