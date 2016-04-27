@@ -305,13 +305,13 @@ buffer.
 The index buffer contains information about which lines to draw between the
 vertices. It uses the index of each vertex in the vertex buffer as a value.
 
-The following index buffer draws three separated lines. The <pre>gl.LINES</pre>
-[[http://www.tutorialspoint.com/webgl/webgl_modes_of_drawing.htm|mode]] always
-draws one unconnected line segment between two vertices as specified in the
-index buffer.
+The following index buffer draws three separated lines. The
+[[http://www.tutorialspoint.com/webgl/webgl_modes_of_drawing.htm|gl.LINES mode]]
+always draws one unconnected line segment between two vertices as specified in
+the index buffer.
 
 <code>
-"drawMode": "LINES"
+"drawMode": "LINES",
 "indexSize": 1,
 "indices": [
   0,
