@@ -6,7 +6,7 @@
   Status: Draft
   Version: 0.2
   Created: 2015-12-09
-  Updated: 2016-04-19
+  Updated: 2016-04-27
 </pre>
 </p>
 <p><table id="toc" class="toc" summary="Contents"><tr><td>
@@ -33,9 +33,7 @@
 <a href="#Projections">Projections</a><ul>
 <li><a href="#World_Geodetic_System">World Geodetic System</a></li>
 <li><a href="#Web_Mercator">Web Mercator</a></li>
-<li>
-<a href="#Normalized_Mercator">Normalized Mercator</a><ul><li><a href="#Coordinates-2">Coordinates</a></li></ul>
-</li>
+<li><a href="#Normalized_Mercator">Normalized Mercator</a></li>
 </ul>
 </li>
 <li><a href="#Transfer_Formats">Transfer Formats</a></li>
@@ -195,7 +193,7 @@ contains only one quadratic tile containing the whole world map on
 <code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>,
 <code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
 </p>
-<p>Additional zoom levels are not considered to be practicable but can easily
+<p>Additional zoom levels are not considered to be practicable but can easily be
 added to the tiling logic following the <code>4^n</code> quadtree. The
 defined number of zoom levels is not considired a binding boundary but
 rather a recommended minimum to align with existing solutions.
@@ -273,16 +271,9 @@ it does not require computing-intense spheric transformations in calculations.
 
 
 <p>To simplify the geographic coordinates, all geographic references will be
-normalized on a single scale between [0,] with it’s origin in the
+normalized on a single scale between [0,1] with it’s origin in the
 northwest corner.
 </p>
-
-<h5>
-<span class="editsection">[<a href="?section=Coordinates-2" title="Edit section: Abstract">edit</a>]</span> <a name="Coordinates-2"></a><span class="mw-headline" id="Coordinates-2">Coordinates</span>
-</h5>
-
-
-
 <p>This pixel projection origin initializes with <code>x=0.0</code> and
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
 is <code>x=1.0</code> and <code>y=1.0</code> in the southeast corner.
@@ -540,7 +531,8 @@ references to the same vertex are realized with pointing indices in the
 according sequence to the first occurence of the coordinates in the vertex
 buffer.
 </p>
-<p><code>"vertexSize": 2,
+<p><pre>"worldScale": 1,
+"vertexSize": 2,
 "vertices": [
   0.537167191505432, 0.327970743179321,
   0.537165760993958, 0.327970921993256,
@@ -549,7 +541,7 @@ buffer.
   0.537164211273193, 0.327973991632462,
   0.537165582180023, 0.327973812818527
 ]
-</code>
+</pre>
 </p>
 
 <h4>
@@ -566,7 +558,7 @@ vertices. It uses the index of each vertex in the vertex buffer as a value.
 always draws one unconnected line segment between two vertices as specified in
 the index buffer.
 </p>
-<p><code>"drawMode": "LINES",
+<p><pre>"drawMode": "LINES",
 "indexSize": 1,
 "indices": [
   0,
@@ -576,7 +568,7 @@ the index buffer.
   4,
   5
 ]
-</code>
+</pre>
 </p>
 <p>The following screenshot shows the rendered output of the example vertex and
 index buffers as specified above.
@@ -592,8 +584,8 @@ index buffers as specified above.
 
 <p>Additional buffers can be added to the scene at will. They could encode anything
 from color buffers directly supplying the lines with colors to meta information
-like line types, or in this specific case of encuding street geometries:
-<a href="wiki.openstreetmap.org/wiki/Map_Features">wiki.openstreetmap.org/wiki/Map_Features</a>.
+like line types, or in this specific case of encoding street geometries:
+<a href="http://wiki.openstreetmap.org/wiki/Map_Features#Highway" target="_blank">map feature classes</a>.
 </p>
 <p>The final result after realizing this specification could look like the
 following screenshot. Here are travel times directly encoded in an additional
@@ -625,7 +617,7 @@ color buffer.
 <ul>
 <li>Zoom level to define the map scale.</li>
 <li>X-coordinate of the tile at the specified zoom level.</li>
-<li>Y-Coordinate of the tile at the specified zoom level.</li>
+<li>Y-coordinate of the tile at the specified zoom level.</li>
 </ul>
 <h4>
 <span class="editsection">[<a href="?section=Responses" title="Edit section: Abstract">edit</a>]</span> <a name="Responses"></a><span class="mw-headline" id="Responses">Responses</span>
@@ -682,4 +674,5 @@ improvement proposals.
 
 
 
-<p>This document is placed in the public domain under CC0 conditions.</p></body></html>
+<p>This document is placed in the public domain under
+<a href="https://github.com/5chdn/gltf-tiling-spec/blob/gh-pages/LICENSE" target="_blank">CC0 conditions</a>.</p></body></html>

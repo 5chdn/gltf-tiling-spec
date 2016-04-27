@@ -106,7 +106,7 @@ contains only one quadratic tile containing the whole world map on
 <code>{21, 0, 0}</code>, <code>{21, 2097151, 0}</code>,
 <code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
 
-Additional zoom levels are not considered to be practicable but can easily
+Additional zoom levels are not considered to be practicable but can easily be
 added to the tiling logic following the <code>4^n</code> quadtree. The
 defined number of zoom levels is not considired a binding boundary but
 rather a recommended minimum to align with existing solutions.
@@ -154,7 +154,7 @@ it does not require computing-intense spheric transformations in calculations.
 ====Normalized Mercator====
 
 To simplify the geographic coordinates, all geographic references will be
-normalized on a single scale between [0, 1] with it’s origin in the
+normalized on a single scale between [0,1] with it’s origin in the
 northwest corner.
 
 This pixel projection origin initializes with <code>x=0.0</code> and
@@ -331,8 +331,8 @@ index buffers as specified above.
 
 Additional buffers can be added to the scene at will. They could encode anything
 from color buffers directly supplying the lines with colors to meta information
-like line types, or in this specific case of encuding street geometries:
-[[http://wiki.openstreetmap.org/wiki/Map_Features#Highway||map feature classes]].
+like line types, or in this specific case of encoding street geometries:
+[[http://wiki.openstreetmap.org/wiki/Map_Features#Highway|map feature classes]].
 
 The final result after realizing this specification could look like the
 following screenshot. Here are travel times directly encoded in an additional
