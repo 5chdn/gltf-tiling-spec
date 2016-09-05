@@ -4,9 +4,9 @@
   Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
-  Version: 0.2
+  Version: 0.3
   Created: 2015-12-09
-  Updated: 2016-04-27
+  Updated: 2016-09-05
 </pre>
 </p>
 <p><table id="toc" class="toc" summary="Contents"><tr><td>
@@ -32,7 +32,7 @@
 <li>
 <a href="#Projections">Projections</a><ul>
 <li><a href="#World_Geodetic_System">World Geodetic System</a></li>
-<li><a href="#Web_Mercator">Web Mercator</a></li>
+<li><a href="#WebMercator">Web-Mercator</a></li>
 <li><a href="#Normalized_Mercator">Normalized Mercator</a></li>
 </ul>
 </li>
@@ -63,22 +63,27 @@
 
 
 
-<p>Different approaches for styling and rendering maps in web applications exist.
+<p>Different approaches for mapping and rendering geo-data in web applications
+exist.
 Widely used architectures are raster or vector services that provide web mapping
-apps with geodata in client/server models. Raster data is efficiently
-prerendered server-side using a static, predefined appearance. Vector data can be
-rendered client-side using dynamic stylization with CPU-consuming JavaScript
-postprocessing algorithms.
+applications with the data in client/server models. Raster data is efficiently
+filtered,
+mapped and rendered
+server-side using a static, predefined appearance. Vector data can be
+mapped and rendered client-side using dynamic stylization with CPU-consuming
+JavaScript
+post-processing algorithms.
 </p>
 <p>In the light of powerful, dedicated graphics hardware being even available on
-mobile devices nowadays, this specification suggests new techniques for client-side
+mobile devices nowadays, this specification suggests new techniques for
+client-side
 rendering of web maps with complex geometries on GPUs. This technique allows to
-display complex geodata and maintain a dynamic, interactive styling while
+display complex geo-data and maintain a dynamic, interactive styling while
 preserving real-time rendering performance and low response times.
 </p>
 <p>This part of the specification describes the server sided preprocessing of
-the geodata, tiling logic and array buffer creation for vertices, indices and
-colours.
+the geo-data, tiling logic and array buffer creation for vertices, indices and
+colors.
 </p>
 
 <h2>
@@ -87,9 +92,9 @@ colours.
 
 
 
-<p>Rendering huge geodata sets in web-based applications remains a performance
+<p>Rendering massive geo-data sets in web-based applications remains a performance
 critical task due to the complexity of the underlying data. Using classic
-approaches to render geodata in a web browser either leaves users with a
+approaches to render geo-data in a web browser either leaves users with a
 predefined, static style (raster data) or a notable computation-intense
 rendering process (vector data).
 </p>
@@ -104,13 +109,13 @@ drawbacks.
 
 
 
-<p>Data transmitted in prerendered <b>raster</b> data formats (e.g., png, jpg) does
+<p>Data transmitted in pre-rendered <b>raster</b> data formats (e.g., png, jpg) does
 not require any client-side processing and can be compressed and cached easily.
 This is used by major web mapping services like Google or Bing maps. The
 disadvantage for interactive mapping solutions is the lack of possibilities for
 users to dynamically interact with the map and retrieve custom styles at
 runtime without requesting a full map tile reload. Web services using this
-technology solve this with tiny vector overlays displaying additional
+technology solve this with small vector overlays displaying additional
 user-styled information. But it is not possible to interact with the map data
 itself.
 </p>
@@ -121,14 +126,15 @@ itself.
 
 
 
-<p>Geodata transmitted in <b>vector</b> formats (e.g., json, gml) opposes the raster
-tile approach and allows client-side stylization and rendering as the geographic
+<p>Geo-data transmitted in <b>vector</b> formats (e.g., json, gml) opposes the
+raster-tile
+approach and allows client-side stylization and rendering as the geographic
 raw data suddenly becomes available for the browser. But this advantage of
-options utilizing the geodata in the client comes with a major drawback in
+options utilizing the geo-data in the client comes with a major drawback in
 performance. Both the processing of the data and the rendering for the user are
 solved with CPU-consuming JavaScript algorithms. Some more recent solutions
 offer GPU-based rendering but fail with supplying convenient solutions of pre-
-or postprocessing of the vector data. Performance bottlenecks are avoided by
+or post-processing of the vector data. Performance bottlenecks are avoided by
 filtering the data on the backend side.
 </p>
 
@@ -143,10 +149,11 @@ enable rendering using GPU-based techniques like
 <a href="https://khronos.org/registry/webgl/specs/latest">WebGL</a>. This allows dynamic,
 interactive and user-defined styles to be rendered directly on the client's
 device. But on the other hand it is a must to completely eliminate the
-client-side postprocessing of the geodata as this becomes a major performance
+client-side post-processing of the geo-data as this becomes a major performance
 bottleneck with increasing data complexity.
 </p>
-<p>The solution presented in this work is a hardware-<b>geometry</b>-based approach rather
+<p>The solution presented in this work is a hardware-<b>geometry</b>-based approach
+rather
 than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
@@ -162,8 +169,9 @@ WebGL might render this solution obsolete.
 
 
 
-<p>This is the technical specification for <b>glTF tiling</b>, especially the backend
-server sided preprocessing of the data and the API design.
+<p>This is the technical specification for <b>glTF tiling</b>, especially the
+backend
+server sided pre-processing of the data and the API design.
 </p>
 
 <h3>
@@ -172,12 +180,12 @@ server sided preprocessing of the data and the API design.
 
 
 
-<p>glTF tiles are subdivided using common quadtree logic, similar to known
+<p>glTF tiles are subdivided using common quad-tree logic, similar to common
 raster or vector tiling services. The tiles get <code>{z, x, y}</code>
 coordinates similar to the
 <a href="http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/">Google Maps</a>
 style, where <code>z</code> is the zoom and <code>x, y</code> the position
-on the flat, quadratic web-mercator worldmap.
+on the flat, quadratic Web-Mercator world map.
 </p>
 
 <h4>
@@ -194,8 +202,8 @@ contains only one quadratic tile containing the whole world map on
 <code>{21, 0, 2097151}</code> and <code>{21, 2097151, 2097151}</code>.
 </p>
 <p>Additional zoom levels are not considered to be practicable but can easily be
-added to the tiling logic following the <code>4^n</code> quadtree. The
-defined number of zoom levels is not considired a binding boundary but
+added to the tiling logic following the <code>4^n</code> quad-tree. The
+defined number of zoom levels is not considered a binding boundary but
 rather a recommended minimum to align with existing solutions.
 </p>
 
@@ -213,7 +221,7 @@ meridianal axis from north to south.
 </p>
 <p><code>z</code> is not considered to be a third dimension but rather the
 current zoom level. Three dimensional data is not covered by this
-specification and sould be flattened.
+specification and should be flattened.
 </p>
 
 <h4>
@@ -222,8 +230,8 @@ specification and sould be flattened.
 
 
 
-<p>Generalization or general simplificatoin of complex geodata sets is not
-part of this specificatoin. In opposite: this technology should be agnostic
+<p>Generalization or general simplification of complex geo-data sets is not
+part of this specification. In opposite: this technology should be agnostic
 to the complexity of the underlying data.
 </p>
 
@@ -234,8 +242,8 @@ to the complexity of the underlying data.
 
 
 <p>To minimize the processing of data and allow easy OpenGL-transformations, it’s
-important to reduce reprojections and avoid spherical units (e.g., degree,
-latitude/longitude).
+important to reduce re-projections and avoid spherical units (e.g., degree,
+minutes, seconds).
 </p>
 
 <h4>
@@ -244,19 +252,20 @@ latitude/longitude).
 
 
 
-<p>Most webmapping applications use the <code>EPSG:4326</code> standard projection
+<p>Most web-mapping applications use the <code>EPSG:4326</code> standard projection
 which is the world geodetic system 1984 (WGS84) and uses a latitude/longitude
 coordinate format. This means, most programming interfaces return values in
 degree.
 </p>
 
 <h4>
-<span class="editsection">[<a href="?section=Web_Mercator" title="Edit section: Abstract">edit</a>]</span> <a name="Web_Mercator"></a><span class="mw-headline" id="Web_Mercator">Web Mercator</span>
+<span class="editsection">[<a href="?section=WebMercator" title="Edit section: Abstract">edit</a>]</span> <a name="WebMercator"></a><span class="mw-headline" id="WebMercator">Web-Mercator</span>
 </h4>
 
 
 
-<p>Internally, many apps use <code>EPSG:3857</code>, the web mercator projection,
+<p>Internally, many applications use <code>EPSG:3857</code>, the Web-Mercator
+projection,
 a metric system going back to Gerard Mercator’s
 <a href="http://ideas.time.com/2013/11/21/a-history-of-the-world-in-twelve-maps/slide/gerard-mercator-world-map-1569/">flat world map</a>
 in 1569. It uses northing and easting as a measure of distance in meters from
@@ -278,7 +287,7 @@ northwest corner.
 <code>y=0.0</code> in the northwest corner of the map. The maximum boundary
 is <code>x=1.0</code> and <code>y=1.0</code> in the southeast corner.
 In this reference system, for instance the Brandenburg Gate in Berlin would
-be at normalized mercator coordinate <code>{0.5371583, 0.3279734}</code>.
+be at Normalized Mercator coordinate <code>{0.5371583, 0.3279734}</code>.
 </p>
 
 <h3>
@@ -287,32 +296,49 @@ be at normalized mercator coordinate <code>{0.5371583, 0.3279734}</code>.
 
 
 
-<p>Due to the data-intense applications in webmapping services, most
+<p>Due to the data-intense applications in web-mapping services, most
 implementations follow a client/server model. It’s important to research and
-evaluate options on exchange formats for the underlying geodata.
+evaluate options on exchange formats for the underlying geo-data.
 </p>
 <p>The following formats are considered worth for comparison.
 </p>
 
 
+<p><ul><li>In computer graphics, the COLLADA digital asset exchange format</li></ul>
+<pre>  (<code>.dae</code>) is used for modeling purposes and exchange of editable
+  3D models.
+</pre>
+</p>
 
 
+<p><ul><li>The new OpenGL transfer format (<code>.gltf</code>) was recently released by</li></ul>
+<pre>  the Khronos Group and promises to be a file format more close to the hardware
+  requirements.
+</pre>
+</p>
 
-<p><ul>
-<li>In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.</li>
-<li>The new OpenGL transfer fromat (<code>.gltf</code>) was recently released by the Khronos Group and promises to be a file format more close to the hardware requirements.</li>
-<li>In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.</li>
-<li>The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.</li>
-</ul>
-Formats not taken into account are KML, Google’s equivalent to GML, and
+
+<p><ul><li>In geo-information sciences, GeoJSON is a JavaScript object notation</li></ul>
+<pre>  (<code>.json</code>) which is extended by geographic features with geometries
+  and properties.
+</pre>
+</p>
+
+
+<p><ul><li>The Geography Markup Language (<code>.gml</code>) is an XML grammar for</li></ul>
+<pre>  expressing geographical features.
+</pre>
+</p>
+
+<p>Formats not taken into account are KML, Google’s equivalent to GML, and
 TopoJSON, another JSON format with merged geometry fields. In addition, raster
 data formats are ignored as they do not store any extractable geometry
 information.
 </p>
 <p>The table below compares the stated formats and evaluates both, their
-space-complexity and postprocessing requirements. The space-complexity is
+space-complexity and pos-tprocessing requirements. The space-complexity is
 important to evaluate the required bandwidth for the application. The
-postprocessing is the aforementioned bottleneck in performance of transforming
+post-processing is the aforementioned bottleneck in performance of transforming
 geographic data into close-to-hardware array buffers for the GPUs.
 </p>
 <p><table>
@@ -325,7 +351,7 @@ Format
 Space-Complexity
 </th>
 <th>
-Client-Postprocessing
+Client-Post-Processing
 </th>
 </tr>
 <tr>
@@ -411,11 +437,11 @@ required
 Base of the comparison are the Cesium Milk Truck and Cesium Man by
 <a href="https://github.com/5chdn/gltf-tiling-spec/tree/gh-pages/dat/cesium">Analytical Graphics Inc</a>.
 The binary version of glTF (<code>.glb</code>) is even smaller than a gzipped
-version (<code>.gltf.gz</code>). Classic geodata formats fail in terms of
+version (<code>.gltf.gz</code>). Classic geo-data formats fail in terms of
 space-complexity since both, JSON and XML formats are quite bloated.
 </p>
-<p>Concerning the client-side postprocessing requirements, only the OpenGL transfer
-format allows to store array buffers which eleminates any javascript processing
+<p>Concerning the client-side post-processing requirements, only the OpenGL transfer
+format allows to store array buffers which eliminates any JavaScript processing
 other than requesting and reading the data. This is an obvious knockout criteria
 for the other candidates and therefore glTF will be considered the best choice
 for this application.
@@ -528,7 +554,7 @@ Vertex (Y)
 (X, Y). The vertex buffer size (or dimension) is therefore two. It's recommended
 to eliminate duplicate entries to reduce the size of the dataset. Multiple
 references to the same vertex are realized with pointing indices in the
-according sequence to the first occurence of the coordinates in the vertex
+according sequence to the first occurrence of the coordinates in the vertex
 buffer.
 </p>
 <p><pre>"worldScale": 1,
@@ -570,7 +596,7 @@ the index buffer.
 ]
 </pre>
 </p>
-<p>The following screenshot shows the rendered output of the example vertex and
+<p>The following screen-shot shows the rendered output of the example vertex and
 index buffers as specified above.
 </p>
 <p><img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-3lines.png" title="Three lines along the vertices with index [0,1]; [2,3]; and [4,5].">
@@ -588,7 +614,7 @@ like line types, or in this specific case of encoding street geometries:
 <a href="http://wiki.openstreetmap.org/wiki/Map_Features#Highway" target="_blank">map feature classes</a>.
 </p>
 <p>The final result after realizing this specification could look like the
-following screenshot. Here are travel times directly encoded in an additional
+following screen-shot. Here are travel times directly encoded in an additional
 color buffer.
 </p>
 <p><img src="https://raw.githubusercontent.com/5chdn/gltf-tiling-spec/gh-pages/img/buffer-preview.png" title="The final result after realizing this specification.">
@@ -613,12 +639,39 @@ color buffer.
 
 
 
-
-<ul>
+<p><ul>
 <li>Zoom level to define the map scale.</li>
 <li>X-coordinate of the tile at the specified zoom level.</li>
 <li>Y-coordinate of the tile at the specified zoom level.</li>
 </ul>
+Extra data can be added at will to enable customized applications. An example
+request is provided with the
+<a href="https://github.com/5chdn/webgl-accessibility-maps-poc5/blob/gh-pages/accessibility.js#L434-L456" target="_blank">WebGL Accessibility Mapping Proof-of-Concept #5</a>
+implementation, and looks like that:
+</p>
+<p><pre>  let travelOptions &amp;#61; r360.travelOptions()&amp;#59;
+  travelOptions.setServiceKey(&amp;#39;uhWrWpUhyZQy8rPfiC7X&amp;#39;)&amp;#59;
+  travelOptions.setServiceUrl(&amp;#39;https&amp;#58;//dev.route360.net/mobie/&amp;#39;)&amp;#59;
+  travelOptions.addSource(startMarker)&amp;#59;
+  travelOptions.addSource(auxiliaryMarker)&amp;#59;
+  travelOptions.setMaxRoutingTime(9999)&amp;#59;
+  travelOptions.setTravelType(TRAVEL_TYPE)&amp;#59;
+  travelOptions.setIntersectionMode(INTERSECTION_MODE)&amp;#59;
+  travelOptions.setDate(20160824)&amp;#59;
+  travelOptions.setTime(32400)&amp;#59;
+  travelOptions.setX(x)&amp;#59;
+  travelOptions.setY(y)&amp;#59;
+  travelOptions.setZ(z)&amp;#59;
+  travelOptions.setDecimalPlaces(z)&amp;#59;
+  travelOptions.setEdgeClasses(
+    &amp;#91;1, 11, 12, 13, 14, 15, 16, 21, 22, 31, 32,
+      41, 42, 51, 63, 62, 71, 72, 81, 91, 92, 99&amp;#93;
+  )&amp;#59;
+  r360.MobieService.getGraph(TILE_GUID, travelOptions, callback)&amp;#59;
+&amp;#125;
+</pre>
+</p>
+
 <h4>
 <span class="editsection">[<a href="?section=Responses" title="Edit section: Abstract">edit</a>]</span> <a name="Responses"></a><span class="mw-headline" id="Responses">Responses</span>
 </h4>
@@ -653,6 +706,21 @@ color buffer.
 <a href="https://github.com/5chdn/gltf-tiling-spec/tree/gh-pages/dat/examples" target="_blank">examples</a>
 here in the repository.
 </p>
+<p>For two demo applications which implement this specification, please refer to:
+</p>
+
+
+
+<p><ul>
+<li><a href="https://github.com/5chdn/webgl-accessibility-maps-poc4" target="_blank">WebGL Accessibility Mapping Proof-of-Concept #4</a></li>
+<li><a href="https://github.com/5chdn/webgl-accessibility-maps-poc5" target="_blank">WebGL Accessibility Mapping Proof-of-Concept #5</a></li>
+</ul>
+To generate binary buffers for debugging purposes, use the
+<a href="https://github.com/5chdn/gltf-arraybuffer-coder" target="_blank">gltf-arraybuffer-coder</a>.
+</p>
+<p>To load custom gltf tiles, use the
+<a href="https://github.com/5chdn/gltf-tiles-loader-poc" target="_blank">gltf-tiles-loader-poc</a>.
+</p>
 
 <h2>
 <span class="editsection">[<a href="?section=Rationale" title="Edit section: Abstract">edit</a>]</span> <a name="Rationale"></a><span class="mw-headline" id="Rationale">Rationale</span>
@@ -663,7 +731,7 @@ here in the repository.
 <p>This draft is early work in progress and may be subject to change at any time.
 </p>
 <p>Please use the <a href="https://github.com/5chdn/gltf-tiling-spec/issues" target="_blank">issue tracker</a>
-to point out problems or uncertainty or create
+to point out problems and uncertainty, or create
 <a href="https://github.com/5chdn/gltf-tiling-spec/pulls" target="_blank">pull requests</a> to suggest
 improvement proposals.
 </p>
