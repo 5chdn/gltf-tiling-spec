@@ -4,22 +4,24 @@
   Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
-  Version: 0.2
+  Version: 0.3
   Created: 2015-12-09
-  Updated: 2016-04-27
+  Updated: 2016-09-05
 </pre>
 
 ==Abstract==
 
-Different approaches for styling and rendering maps in web applications exist.
+Different approaches for mapping and rendering maps in web applications exist.
 Widely used architectures are raster or vector services that provide web mapping
 apps with geodata in client/server models. Raster data is efficiently
-prerendered server-side using a static, predefined appearance. Vector data can be
+prerendered server-side using a static, predefined appearance. Vector data can
+be
 rendered client-side using dynamic stylization with CPU-consuming JavaScript
 postprocessing algorithms.
 
 In the light of powerful, dedicated graphics hardware being even available on
-mobile devices nowadays, this specification suggests new techniques for client-side
+mobile devices nowadays, this specification suggests new techniques for
+client-side
 rendering of web maps with complex geometries on GPUs. This technique allows to
 display complex geodata and maintain a dynamic, interactive styling while
 preserving real-time rendering performance and low response times.
@@ -74,7 +76,8 @@ device. But on the other hand it is a must to completely eliminate the
 client-side postprocessing of the geodata as this becomes a major performance
 bottleneck with increasing data complexity.
 
-The solution presented in this work is a hardware-'''geometry'''-based approach rather
+The solution presented in this work is a hardware-'''geometry'''-based approach
+rather
 than known vector- or raster-based solutions. It maintains the goal to allow
 real-time rendering with outstanding performance and very low response times for
 the client.
@@ -85,7 +88,8 @@ WebGL might render this solution obsolete.
 
 ==Specification==
 
-This is the technical specification for '''glTF tiling''', especially the backend
+This is the technical specification for '''glTF tiling''', especially the
+backend
 server sided preprocessing of the data and the API design.
 
 ===Map Tiling Logic===
@@ -171,10 +175,17 @@ evaluate options on exchange formats for the underlying geodata.
 
 The following formats are considered worth for comparison.
 
-* In computer graphics, the COLLADA digital asset exchange format (<code>.dae</code>) is used for modelling purposes and exchange of editable 3D models.
-* The new OpenGL transfer fromat (<code>.gltf</code>) was recently released by the Khronos Group and promises to be a file format more close to the hardware requirements.
-* In geoinformation sciences, GeoJSON is a JavaScript object notation (<code>.json</code>) which is extended by geographic features with geometries and properties.
-* The Geography Markup Language (<code>.gml</code>) is an XML grammar for expressing geographical features.
+* In computer graphics, the COLLADA digital asset exchange format
+  (<code>.dae</code>) is used for modelling purposes and exchange of editable
+  3D models.
+* The new OpenGL transfer fromat (<code>.gltf</code>) was recently released by
+  the Khronos Group and promises to be a file format more close to the hardware
+  requirements.
+* In geoinformation sciences, GeoJSON is a JavaScript object notation
+  (<code>.json</code>) which is extended by geographic features with geometries
+  and properties.
+* The Geography Markup Language (<code>.gml</code>) is an XML grammar for
+  expressing geographical features.
 
 Formats not taken into account are KML, Google’s equivalent to GML, and
 TopoJSON, another JSON format with merged geometry fields. In addition, raster

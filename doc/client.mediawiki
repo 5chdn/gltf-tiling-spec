@@ -4,12 +4,14 @@
   Authors: Alexander Schoedon (schoedon@uni-potsdam.de)
   Tags: webgl, gltf, json, buffer, leaflet, tiling, webmapping
   Status: Draft
+  Version: 0.0
   Created: 2015-12-02
+  Updated: 2016-09-05
 </pre>
 
 ==Motivation==
 
-Refer to this [[../pdf/motivation.pdf|paper]] on distance maps for the time
+Refer to this [[../pdf/motivation.pdf|paper]] on accessibility maps for the time
 being.
 
 ==Copyright==
